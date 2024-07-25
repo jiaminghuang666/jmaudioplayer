@@ -1,2 +1,0 @@
-# jmaudioplayer
-ffmpeg api + opensl 
