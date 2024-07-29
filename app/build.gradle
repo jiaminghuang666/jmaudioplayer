@@ -12,6 +12,19 @@ android {
         targetSdk 33
         versionCode 1
         versionName "1.0"
+        externalNativeBuild {
+            cmake {
+                cppFlags ''
+            }
+            ndk{
+                abiFilters "armeabi-v7a"
+            }
+            sourceSets{
+                main{
+                    jniLibs.srcDirs=['libs']
+                }
+            }
+        }
 
     }
 
@@ -19,6 +32,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path file('src/main/cpp/CMakeLists.txt')
+            version '3.22.1'
         }
     }
 }
