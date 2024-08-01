@@ -8,6 +8,8 @@
 #include "FFmpegWrapper.h"
 #include "openSLWrapper.h"
 
+#include "jmaudioplayer.h"
+
 jmAudioPlayer::jmAudioPlayer()
 {
     ALOGD("%s", __func__ );
@@ -52,6 +54,8 @@ int jmAudioPlayer::play()
 {
     int ret = -1;
 
+    postEvent(MSG_START, 0 , 0 );
+
     audioParam mparam = mffmpeg->getAPara();
     ALOGD("%s numChannels:%d sampleFormat:%d sampleRate:%d !!",__func__ ,mparam.numChannels, mparam.sampleFormat, mparam.sampleRate );
     ret = mopenSl->createOpenSL(&mparam);
@@ -63,4 +67,32 @@ int jmAudioPlayer::play()
     return 0;
 }
 
+int jmAudioPlayer::getParam(int id, void *param)
+{
+    if (!param)
+        return -1;
+
+    switch (id) {
+        case PARAM_DURATION:
+            *(int64_t *)param = mffmpeg->getDuration();
+            ALOGD("%s duration %lld  !!",__func__ ,*(int64_t *)param );
+            break;
+        case PARAM_POSITION:
+            break;
+
+        default:
+            ALOGE("%s  fail !!",__func__ );
+            break;
+    }
+
+    return 0;
+}
+
+int jmAudioPlayer::postEvent(int id,int arg1,int arg2)
+{
+
+    jniPostEvent(id, arg1, arg2);
+
+    return 0;
+}
 

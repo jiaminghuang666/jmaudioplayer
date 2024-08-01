@@ -9,6 +9,12 @@
 #include "openSLWrapper.h"
 
 
+enum paramId {
+    PARAM_DURATION = 0,
+    PARAM_POSITION,
+    PARAM_MAX
+};
+
 class jmAudioPlayer {
 public:
     jmAudioPlayer();
@@ -23,8 +29,11 @@ public:
      int createjmAudioPlayer(const char *Url);
      int releasejmAudioPlayer();
      int play();
+     int getParam(int id, void *param);
 
 private:
+    int postEvent(int id,int arg1,int arg2);
+
     FFmpegWrapper * mffmpeg ;
     openSLWrapper * mopenSl ;
     XData * queue;

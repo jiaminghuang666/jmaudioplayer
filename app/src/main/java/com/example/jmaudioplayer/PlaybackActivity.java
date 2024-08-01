@@ -1,6 +1,9 @@
 package com.example.jmaudioplayer;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.util.Log;
 
 import androidx.fragment.app.FragmentActivity;
@@ -12,6 +15,7 @@ public class PlaybackActivity extends FragmentActivity {
 
     private static final String TAG = "jiaming PlaybackActivity";
     private  Thread playbackThread = null;
+    private static JMAudioPlayer myJMAudioPlayer;
 
     static {
        System.loadLibrary("jmaudioplayer");
@@ -26,6 +30,7 @@ public class PlaybackActivity extends FragmentActivity {
                     .replace(android.R.id.content, new PlaybackVideoFragment())
                     .commit();
         }*/
+        myJMAudioPlayer = new JMAudioPlayer(this);
     }
 
     @Override
@@ -58,6 +63,8 @@ public class PlaybackActivity extends FragmentActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+       // mPlayerMsgHandler.removeCallbacksAndMessages(null);
+       // mPlayerMsgHandler = null;
         releaseSource();
     }
 
@@ -76,11 +83,12 @@ public class PlaybackActivity extends FragmentActivity {
         }
     };
 
+
     public native int setDataSource(String url,Object handle);
    public native int releaseSource();
 
    public native void startPlay();
    public native void stopPlay();
    public native void pause();
-    public native void pause_1();
+
 }

@@ -39,8 +39,8 @@ private:
 
     pthread_mutex_t mutex;
     pthread_cond_t full_signal;
-
 };
+
 
 
 #endif //JMAUDIOSONIC_XDATA_H

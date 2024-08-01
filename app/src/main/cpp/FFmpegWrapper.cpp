@@ -53,13 +53,10 @@ int FFmpegWrapper::FFmpegInit(const char* url)
     innumChannels = fmtCtx->streams[audioIndex]->codecpar->channels;
     insampleRate = fmtCtx->streams[audioIndex]->codecpar->sample_rate;
 
-    ALOGD("%s numChannels= %d sampleRate=%d !!",__func__ ,innumChannels,insampleRate);
-
     codecCtx = avcodec_alloc_context3(NULL);
     //stream = fmtCtx->streams[audioIndex];
     avcodec_parameters_to_context(codecCtx, fmtCtx->streams[audioIndex]->codecpar);
     codec = avcodec_find_decoder(codecCtx->codec_id);
-    ALOGD("%s  numChannels= %d sampleRate=%d !!",__func__ ,innumChannels,insampleRate);
 
     insampleFormat = codecCtx->sample_fmt;
     insampleRate = codecCtx->sample_rate;
@@ -129,6 +126,15 @@ audioParam FFmpegWrapper::getAPara()
     mParam.sampleFormat = outsampleFormat;
 
     return mParam;
+}
+
+long FFmpegWrapper::getDuration()
+{
+    if (fmtCtx)
+        return fmtCtx->duration * 1000 / AV_TIME_BASE;
+    else
+        return 1;
+
 }
 
 int FFmpegWrapper::FFmpegResample(AVFrame *indata, AVFrame *outdata)

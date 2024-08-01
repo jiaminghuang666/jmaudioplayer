@@ -45,11 +45,9 @@ static SLEngineItf CreateSL()
 
 void openSLWrapper::PlayCall(void *bufq)
 {
-    //ALOGD("%s  start ..", __func__ );
     if (!bufq) return;
     SLAndroidSimpleBufferQueueItf bf = (SLAndroidSimpleBufferQueueItf)bufq;
 
-    //xdata d = mqueue->get();
     xdata d = mqueue->blockGet();
     if (d.size <= 0) {
 	   ALOGE("%s get data is not enough size:%d  ..", __func__ ,d.size);
@@ -67,7 +65,6 @@ void openSLWrapper::PlayCall(void *bufq)
 
 static void PcmCall(SLAndroidSimpleBufferQueueItf bf, void *context)
 {
-   // ALOGD("%s  start ..", __func__ );
     openSLWrapper *ap = (openSLWrapper *)context;
     if (!ap) {
         ALOGE("%s CreateSL fail !!", __func__ );

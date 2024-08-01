@@ -31,6 +31,7 @@ public:
     int FFmpegRelease();
 
     audioParam getAPara();
+    long getDuration();
 
     int FFmpegInitResample();
     int FFmpegResample(AVFrame *indata, AVFrame *outdata);
@@ -41,6 +42,7 @@ public:
     //std::vector<AVFrame *> queue;
 
 private:
+
     XData * mqueue;
     AVFormatContext *fmtCtx = 0;
     AVCodecContext  *codecCtx = 0;
@@ -61,6 +63,7 @@ private:
 
     bool isPlay = false;
     pthread_t decodeId;
+
 
 
 };
