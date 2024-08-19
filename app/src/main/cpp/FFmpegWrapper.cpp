@@ -5,12 +5,20 @@
 #include "FFmpegWrapper.h"
 #include "ALOG.h"
 
-static bool debug = false;
+//static bool debug = false;
 
 FFmpegWrapper::FFmpegWrapper(XData * queue)
 {
     ALOGE("%s",__func__ );
     mqueue = queue;
+    mpktQueue = (Queue *)malloc(sizeof (Queue));
+    if (mpktQueue == NULL) {
+        ALOGE("%s malloc queue fail ",__func__ );
+        return ;
+    }
+    memset(mpktQueue, 0 , sizeof (Queue));
+    initQueue(mpktQueue);
+
     av_register_all();
     avformat_network_init();
     avcodec_register_all();
@@ -19,6 +27,9 @@ FFmpegWrapper::FFmpegWrapper(XData * queue)
 FFmpegWrapper::~FFmpegWrapper()
 {
     ALOGE("%s",__func__ );
+    destroyQueue(mpktQueue);
+    free(mpktQueue);
+
 }
 
 int FFmpegWrapper::FFmpegInit(const char* url)
@@ -152,19 +163,15 @@ int FFmpegWrapper::FFmpegDecodeAudio()
     ALOGD("%s start decode..",__func__ );
     int ret;
     AVFrame *frame = av_frame_alloc();
-    AVPacket *packet = av_packet_alloc();
+    AVPacket *packet;
+
     int frameIndex = 0;
     int got_frame = 0;
     long int size = 0;
 
     while(isPlay) {
-        ret = av_read_frame(fmtCtx, packet);
-        if (packet->stream_index != audioIndex)
-            continue;
-        if(ret < 0) {
-            ALOGE("%s av_read_frame fail !!",__func__ );
-            goto err0;
-        }
+        // get packet data from pktqueue;
+        packet =  (AVPacket *) deQueue(mpktQueue);
         ret = avcodec_decode_audio4(codecCtx, frame, &got_frame,packet);
         if(ret < 0 || got_frame <= 0) {
             ALOGE("%s avcodec_decode_audio4 fail || got_frame got no frame !!",__func__ );
@@ -194,10 +201,39 @@ int FFmpegWrapper::FFmpegDecodeAudio()
     isPlay = false;
 
 err0:
-    av_packet_unref(packet);
     av_frame_unref(frame);
     return 0;
 }
+
+
+
+int FFmpegWrapper::FFmpegDemux()
+{
+    int ret = -1;
+    AVPacket *packet = av_packet_alloc();
+
+    while(isPlay) {
+        ret = av_read_frame(fmtCtx, packet);
+        if (ret < 0) {
+            ALOGE("%s av_read_frame fail !!", __func__);
+            goto err0;
+        }
+
+        if (packet->stream_index == audioIndex) {
+            // put packet data to pktqueue;
+            enQueue(mpktQueue, (void *) packet);
+        } else {
+            continue;
+        }
+    }
+
+    return ret;
+
+err0:
+    av_packet_unref(packet);
+    return -1;
+}
+
 
 void *_decodeAudio(void *args)
 {
@@ -211,7 +247,7 @@ void *_decodeAudio(void *args)
 
 int FFmpegWrapper::startDecode(bool playing)
 {
-    ALOGD("%s start play..",__func__ );
+    ALOGD("%s start ..",__func__ );
     isPlay = playing;
 
     pthread_create(&decodeId, NULL, _decodeAudio, this);
@@ -219,6 +255,20 @@ int FFmpegWrapper::startDecode(bool playing)
     return 0;
 }
 
+void *_demux(void *args)
+{
+    FFmpegWrapper *p = (FFmpegWrapper *)args;
+    p->FFmpegDemux();
+    return NULL;
+}
 
+int FFmpegWrapper::startDemux(bool playing)
+{
+    ALOGD("%s start ..",__func__ );
+    isPlay = playing;
+
+    pthread_create(&demuxId, NULL, _demux, this);
+    return 0;
+}
 
 

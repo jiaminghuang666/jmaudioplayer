@@ -54,7 +54,7 @@ int jmAudioPlayer::play()
 {
     int ret = -1;
 
-    postEvent(MSG_START, 0 , 0 );
+    ret = mffmpeg->startDemux(true);
 
     audioParam mparam = mffmpeg->getAPara();
     ALOGD("%s numChannels:%d sampleFormat:%d sampleRate:%d !!",__func__ ,mparam.numChannels, mparam.sampleFormat, mparam.sampleRate );

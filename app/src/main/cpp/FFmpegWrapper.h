@@ -6,6 +6,7 @@
 #define JMAUDIOSONIC_FFMPEGWRAPPER_H
 
 #include "XData.h"
+#include "FFmpegqueue.h"
 
 extern "C" {
 #include <libavformat/avformat.h>
@@ -37,13 +38,17 @@ public:
     int FFmpegResample(AVFrame *indata, AVFrame *outdata);
 
     int FFmpegDecodeAudio();
+    int FFmpegDemux();
 
     int startDecode(bool playing);
+    int startDemux(bool playing);
     //std::vector<AVFrame *> queue;
 
 private:
 
     XData * mqueue;
+    Queue * mpktQueue;
+
     AVFormatContext *fmtCtx = 0;
     AVCodecContext  *codecCtx = 0;
     //AVStream *stream = 0;
@@ -63,8 +68,7 @@ private:
 
     bool isPlay = false;
     pthread_t decodeId;
-
-
+    pthread_t demuxId;
 
 };
 
