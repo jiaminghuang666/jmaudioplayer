@@ -8,6 +8,7 @@
 
 static bool debug = false;
 
+#define MAXFRAME 25
 
 int XData::put(xdata frame)
 {
@@ -58,7 +59,7 @@ int XData::blockPut(xdata frame)
 {
     if (debug) ALOGD("%s  data into queue ..", __func__ );
     //pthread_mutex_lock(&mutex);
-    if (frames.size() >= 20) {
+    if (frames.size() >= MAXFRAME ) {
         if (debug) ALOGD("%s, frames.size() = %d frames queue is full,need wait some time ", __func__, frames.size() );
         pthread_cond_wait(&full_signal, &mutex);
     }
@@ -78,7 +79,7 @@ xdata XData::blockGet()
         if(!frames.empty()) {
             d = frames.front();
             frames.pop_front();
-            if (frames.size() < 20) {
+            if (frames.size() < MAXFRAME ) {
                 //if (debug) ALOGD("%s, frames.size() = %d is not full sent full_signal", __func__, frames.size() );
                 pthread_cond_signal(&full_signal);
             }

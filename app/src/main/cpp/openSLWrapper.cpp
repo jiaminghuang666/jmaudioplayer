@@ -15,6 +15,7 @@ static SLObjectItf player = NULL;
 static SLPlayItf iplayer = NULL;
 static SLAndroidSimpleBufferQueueItf pcmQue = NULL;
 
+static bool dumpdataEnable = false;
 
 openSLWrapper::openSLWrapper(XData * queue)
 {
@@ -43,6 +44,19 @@ static SLEngineItf CreateSL()
     return en;
 }
 
+static int dumpPcmData(void *data, int size)
+{
+    FILE *file = fopen("/data/output.pcm","a");
+    if (!file) {
+        ALOGE("%s get data is not enough size:%d  ..", __func__ ,size);
+        return -1;
+    } else {
+       fwrite(data, 1, size, file);
+       fclose(file);
+    }
+    return 0;
+}
+
 void openSLWrapper::PlayCall(void *bufq)
 {
     if (!bufq) return;
@@ -53,8 +67,12 @@ void openSLWrapper::PlayCall(void *bufq)
 	   ALOGE("%s get data is not enough size:%d  ..", __func__ ,d.size);
 	   return ;
 	}
-    if (debug)
+    //if (debug)
         ALOGD("%s  successful size:%d  ..", __func__ ,d.size);
+    if (dumpdataEnable) {
+        dumpPcmData(d.data,d.size);
+    }
+
     memcpy(buf, d.data,d.size);
 	if (pcmQue && (*pcmQue)) {
         (*pcmQue)->Enqueue(pcmQue,buf, d.size);	
@@ -191,7 +209,7 @@ void openSLWrapper::renderpcm()
 void * _renderpcm(void *args)
 {
     ALOGD("%s start ..", __func__ );
-    XSleep(2);
+    //XSleep(2);
     openSLWrapper *p = (openSLWrapper *)args;
     p->renderpcm();
 

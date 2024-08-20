@@ -148,14 +148,10 @@ long FFmpegWrapper::getDuration()
 
 }
 
-int FFmpegWrapper::FFmpegResample(AVFrame *indata, AVFrame *outdata)
+static int dumpdecodeData(void *data, int size, int numChannels)
 {
-    int len = 0;
-    uint8_t *outBuffer = (uint8_t *) malloc(outFrameSize);
 
-    len = swr_convert(swrCtx, &outBuffer, indata->nb_samples, (const uint8_t **)indata->data, indata->nb_samples);
-    return len;
-
+    return 0;
 }
 
 int FFmpegWrapper::FFmpegDecodeAudio()
@@ -167,7 +163,8 @@ int FFmpegWrapper::FFmpegDecodeAudio()
 
     int frameIndex = 0;
     int got_frame = 0;
-    long int size = 0;
+    int size = 0;
+    int bytes_per_sample = 0;
 
     while(isPlay) {
         // get packet data from pktqueue;
@@ -177,18 +174,28 @@ int FFmpegWrapper::FFmpegDecodeAudio()
             ALOGE("%s avcodec_decode_audio4 fail || got_frame got no frame !!",__func__ );
             goto err0;
         }
-        if (debug)
-            ALOGD("%s pkt_dts=%lld frame->pts=%lld packet->pts=%lld ",__func__,frame->pkt_dts, frame->pts,packet->pts);
-
+        if (debug) {
+            ALOGI("%s pkt_dts=%lld  frame->pts=%lld packet->pts=%lld ",__func__,frame->pkt_dts, frame->pts,packet->pts);
+            ALOGI("%s data.size=%d  outsampleFormat =%d \n",__func__, size, outsampleFormat);
+            bytes_per_sample = av_get_bytes_per_sample((AVSampleFormat)frame->format);
+            FILE *file = fopen("/data/outputdecode.pcm","a");
+            if (!file) {
+                ALOGE("%s get data is not enough..", __func__ );
+                return -1;
+            } else {
+                for ( int i  = 0 ; i < outnumChannels ; i++) {
+                    fwrite(frame->data[i], 1, bytes_per_sample * frame->nb_samples, file);
+                }
+                fclose(file);
+            }
+        }
         //样本字节数 * 单通道样本数 * 通道数
         size = av_get_bytes_per_sample((AVSampleFormat)frame->format) * frame->nb_samples * outnumChannels;
-        uint8_t *outBuffer = (uint8_t *) av_malloc(size);
+        uint8_t * outBuffer = (uint8_t *) av_malloc(size);
         swr_convert(swrCtx, &outBuffer, frame->nb_samples, (const uint8_t **)frame->data, frame->nb_samples);
-        if (debug)
-            ALOGD("%s data.size=%d ",__func__, size);
 
         xdata data;
-        data.data = (unsigned char *)outBuffer;
+        data.data = (uint8_t *)outBuffer;
         data.size = size;
         //mqueue->put(data);
         mqueue->blockPut(data);

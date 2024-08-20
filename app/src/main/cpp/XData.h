@@ -17,7 +17,7 @@ typedef struct  audioParam_t {
 
 
 typedef struct xdata_t {
-    unsigned char * data = 0;
+    uint8_t * data = 0;
     int size = 0;
 
 } xdata;

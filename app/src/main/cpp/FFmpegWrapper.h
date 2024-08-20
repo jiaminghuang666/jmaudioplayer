@@ -35,7 +35,6 @@ public:
     long getDuration();
 
     int FFmpegInitResample();
-    int FFmpegResample(AVFrame *indata, AVFrame *outdata);
 
     int FFmpegDecodeAudio();
     int FFmpegDemux();
