@@ -69,6 +69,8 @@ private:
     pthread_t decodeId;
     pthread_t demuxId;
 
+    long int pktindex = 0;
+
 };
 
 

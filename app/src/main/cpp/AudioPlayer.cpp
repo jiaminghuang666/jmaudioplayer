@@ -55,12 +55,11 @@ int jmAudioPlayer::play()
     int ret = -1;
 
     ret = mffmpeg->startDemux(true);
+    ret = mffmpeg->startDecode(true);
 
     audioParam mparam = mffmpeg->getAPara();
     ALOGD("%s numChannels:%d sampleFormat:%d sampleRate:%d !!",__func__ ,mparam.numChannels, mparam.sampleFormat, mparam.sampleRate );
     ret = mopenSl->createOpenSL(&mparam);
-
-    ret = mffmpeg->startDecode(true);
 
     ret = mopenSl->startRender();
 

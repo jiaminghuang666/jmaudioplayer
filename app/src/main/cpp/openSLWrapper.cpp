@@ -22,6 +22,7 @@ openSLWrapper::openSLWrapper(XData * queue)
     ALOGD("%s",__func__ );
     mqueue = queue;
     buf = new unsigned char[1024*1024];
+    memset(buf, 0, sizeof(unsigned char)*1024*1024 );
 }
 
 openSLWrapper::~openSLWrapper()

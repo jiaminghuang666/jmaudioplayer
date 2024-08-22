@@ -5,7 +5,7 @@
 #include "FFmpegWrapper.h"
 #include "ALOG.h"
 
-//static bool debug = false;
+static int ffmpegdebug = 4;
 
 FFmpegWrapper::FFmpegWrapper(XData * queue)
 {
@@ -148,9 +148,20 @@ long FFmpegWrapper::getDuration()
 
 }
 
-static int dumpdecodeData(void *data, int size, int numChannels)
+static int dumpdecodeData(AVFrame *frame, int outnumChannels)
 {
-
+    int bytes_per_sample = 0;
+    bytes_per_sample = av_get_bytes_per_sample((AVSampleFormat)frame->format);
+    FILE *file = fopen("/data/outputdecode.pcm","a");
+    if (!file) {
+        ALOGE("%s get data is not enough..", __func__ );
+        return -1;
+    } else {
+        for ( int i  = 0 ; i < outnumChannels ; i++) {
+            fwrite(frame->data[i], 1, bytes_per_sample * frame->nb_samples, file);
+        }
+        fclose(file);
+    }
     return 0;
 }
 
@@ -160,54 +171,63 @@ int FFmpegWrapper::FFmpegDecodeAudio()
     int ret;
     AVFrame *frame = av_frame_alloc();
     AVPacket *packet;
+    long int decodedpktindex = 0;
 
     int frameIndex = 0;
     int got_frame = 0;
     int size = 0;
-    int bytes_per_sample = 0;
 
-    while(isPlay) {
+    while(isPlay || (pktindex - decodedpktindex) != 0 ) {
         // get packet data from pktqueue;
-        packet =  (AVPacket *) deQueue(mpktQueue);
-        ret = avcodec_decode_audio4(codecCtx, frame, &got_frame,packet);
-        if(ret < 0 || got_frame <= 0) {
-            ALOGE("%s avcodec_decode_audio4 fail || got_frame got no frame !!",__func__ );
-            goto err0;
-        }
-        if (debug) {
-            ALOGI("%s pkt_dts=%lld  frame->pts=%lld packet->pts=%lld ",__func__,frame->pkt_dts, frame->pts,packet->pts);
-            ALOGI("%s data.size=%d  outsampleFormat =%d \n",__func__, size, outsampleFormat);
-            bytes_per_sample = av_get_bytes_per_sample((AVSampleFormat)frame->format);
-            FILE *file = fopen("/data/outputdecode.pcm","a");
-            if (!file) {
-                ALOGE("%s get data is not enough..", __func__ );
-                return -1;
-            } else {
-                for ( int i  = 0 ; i < outnumChannels ; i++) {
-                    fwrite(frame->data[i], 1, bytes_per_sample * frame->nb_samples, file);
-                }
-                fclose(file);
+        packet = (AVPacket *)dequeue(mpktQueue, &decodedpktindex);
+
+        int consumed  = 0;
+        while (packet->size > 0) {
+            consumed = avcodec_decode_audio4(codecCtx, frame, &got_frame,packet);
+
+            //if(consumed < 0 ) {
+            //    ALOGE("%s consumed < 0 !!",__func__ );
+            //    break;
+            //}
+            if( got_frame <= 0) {
+                ALOGE("%s avcodec_decode_audio4 fail || got_frame got no frame !!",__func__ );
+                goto err0;
             }
+            if (ffmpegdebug > 3) {
+                dumpdecodeData(frame,  outnumChannels);
+                ALOGI("%s pktindex =%d packet->size=%d consumed=%d got_frame=%d \n",__func__, decodedpktindex, packet->size,consumed,got_frame);
+                ALOGI("%s frame->pkt_dts=%lld  frame->pts=%lld packet->pts=%lld ",__func__,frame->pkt_dts, frame->pts,packet->pts);
+            }
+            //样本字节数 * 单通道样本数 * 通道数
+            size = av_get_bytes_per_sample((AVSampleFormat)frame->format) * frame->nb_samples * outnumChannels;
+            if (ffmpegdebug > 3) { ALOGI("%s data.size=%d \n",__func__, size); }
+            uint8_t * outBuffer = (uint8_t *) av_malloc(size);
+            swr_convert(swrCtx, &outBuffer, frame->nb_samples, (const uint8_t **)frame->data, frame->nb_samples);
+
+            xdata data;
+            data.data = (uint8_t *)outBuffer;
+            data.size = size;
+            mqueue->blockPut(data);
+
+            free(outBuffer);
+            frameIndex++;
+
+            packet->data += consumed;
+            packet->size -= consumed;
         }
-        //样本字节数 * 单通道样本数 * 通道数
-        size = av_get_bytes_per_sample((AVSampleFormat)frame->format) * frame->nb_samples * outnumChannels;
-        uint8_t * outBuffer = (uint8_t *) av_malloc(size);
-        swr_convert(swrCtx, &outBuffer, frame->nb_samples, (const uint8_t **)frame->data, frame->nb_samples);
 
-        xdata data;
-        data.data = (uint8_t *)outBuffer;
-        data.size = size;
-        //mqueue->put(data);
-        mqueue->blockPut(data);
-
-        free(outBuffer);
-        frameIndex++;
+        if (packet) {
+            if (ffmpegdebug > 3) ALOGE("%s delete decoded pktindex =%ld",__func__,decodedpktindex );
+            free(packet);
+        }
+       // av_packet_free((AVPacket **) &packet);
     }
 
-    ALOGE("%s start decode exit..",__func__ );
+    ALOGD("%s start decode exit..",__func__ );
     isPlay = false;
 
 err0:
+    ALOGE("%s start decode err0 exit..",__func__ );
     av_frame_unref(frame);
     return 0;
 }
@@ -228,12 +248,18 @@ int FFmpegWrapper::FFmpegDemux()
 
         if (packet->stream_index == audioIndex) {
             // put packet data to pktqueue;
-            enQueue(mpktQueue, (void *) packet);
+            void *pktdata = malloc(sizeof(AVPacket));
+            memcpy(pktdata, packet, sizeof(AVPacket));
+            pktindex++;
+            if (ffmpegdebug > 3) ALOGD("%s  pktindex =%d packet->size=%d ", __func__,pktindex,packet->size);
+            enqueue(mpktQueue, (void *) pktdata, pktindex);
+
         } else {
             continue;
         }
     }
 
+    av_packet_free((AVPacket **) &packet);
     return ret;
 
 err0:

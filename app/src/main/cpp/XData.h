@@ -25,8 +25,7 @@ typedef struct xdata_t {
 
 class XData {
 public:
-    virtual int put(xdata frame);
-    virtual xdata get();
+
 
     virtual int blockPut(xdata frame);
     virtual xdata blockGet();
