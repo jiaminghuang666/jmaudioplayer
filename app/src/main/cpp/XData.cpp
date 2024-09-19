@@ -6,47 +6,54 @@
 #include "ALOG.h"
 #include "jmUntil.h"
 
-static bool debug = false;
+static bool debug = true;
 
 #define MAXFRAME 25
 
 int XData::blockPut(xdata frame)
 {
-    if (debug) ALOGD("%s  data into queue ..", __func__ );
+    if (debug) ALOGD("%s  start ..", __func__ );
+    if (frame.size <= 0 || !frame.data) {
+        ALOGE("%s, xdata frame.size = %d  null fail !! ", __func__, frame.size );
+        return -1;
+    }
+
     //pthread_mutex_lock(&mutex);
-    if (frames.size() >= MAXFRAME ) {
-       // if (debug)
-            ALOGD("%s, frames.size() = %d frames queue is full,need wait full_signal ", __func__, frames.size() );
+    if (frames.size() > MAXFRAME ) {
+        ALOGD("%s, frames.size() = %d frames queue full frames.empty() ", __func__, frames.size() );
         pthread_cond_wait(&full_signal, &mutex);
     }
-    if (debug) ALOGD("%s, current frames.size() = %d  ", __func__, frames.size() );
+    if (debug) ALOGD("%s, current frames.size() = %d  frameindex =%ld", __func__, frames.size(), frame.frameindex );
     frames.push_back(frame);
    // pthread_mutex_unlock(&mutex);
+    if (debug) ALOGD("%s  end", __func__ );
     return 1;
 }
 
-
 xdata XData::blockGet()
 {
-    if (debug) ALOGD("%s  data from queue ..", __func__ );
+    if (debug) ALOGD("%s  start..", __func__ );
     xdata d;
     //pthread_mutex_lock(&mutex);
-    while(!isExit) {
+    //while(!isExit) {
         if(!frames.empty()) {
-            d = frames.front();
-            frames.pop_front();
-            //if (frames.size() < MAXFRAME ) {
-                //if (debug)
-                ALOGD("%s, frames.size() = %d is not full sent full_signal", __func__, frames.size() );
+            if (frames.size() < MAXFRAME ) {
+                ALOGD("%s, frames.size() = %d sent full_signal ", __func__, frames.size() );
                 pthread_cond_signal(&full_signal);
-            //}
-            if (debug) ALOGD("%s, current frames.size() = %d  ", __func__, frames.size() );
+            }
+
+            d = frames.front();
+            if (debug) ALOGD("%s, current frames.size() = %d  frameindex =%ld \n", __func__, frames.size(), d.frameindex );
+            frames.pop_front();
             //pthread_mutex_unlock(&mutex);
             return  d;
+        } else {
+            if (debug) ALOGD("%s, frames.empty() = %d   ", __func__, frames.empty() );
         }
-    }
-    if (debug) ALOGD("%s, do nothing frames.size() = %d  ", __func__, frames.size() );
+    //}
    // pthread_mutex_unlock(&mutex);
+
+    if (debug) ALOGD("%s  end..", __func__ );
     return d;
 }
 

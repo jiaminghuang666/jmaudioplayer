@@ -15,18 +15,15 @@ typedef struct  audioParam_t {
     int sampleFormat;
 }audioParam ;
 
-
 typedef struct xdata_t {
     uint8_t * data = 0;
     int size = 0;
-
+    long int frameindex = 0;
 } xdata;
 
 
 class XData {
 public:
-
-
     virtual int blockPut(xdata frame);
     virtual xdata blockGet();
 

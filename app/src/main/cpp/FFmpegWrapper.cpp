@@ -5,7 +5,7 @@
 #include "FFmpegWrapper.h"
 #include "ALOG.h"
 
-static int ffmpegdebug = 4;
+static int ffmpegdebug = 3;
 
 FFmpegWrapper::FFmpegWrapper(XData * queue)
 {
@@ -165,6 +165,19 @@ static int dumpdecodeData(AVFrame *frame, int outnumChannels)
     return 0;
 }
 
+static int dumpresampleData(void *data, int size)
+{
+    FILE *file = fopen("/data/outputresample.pcm","a");
+    if (!file) {
+        ALOGE("%s get data is not enough size:%d  ..", __func__ ,size);
+        return -1;
+    } else {
+        fwrite(data, 1, size, file);
+        fclose(file);
+    }
+    return 0;
+}
+
 int FFmpegWrapper::FFmpegDecodeAudio()
 {
     ALOGD("%s start decode..",__func__ );
@@ -173,7 +186,7 @@ int FFmpegWrapper::FFmpegDecodeAudio()
     AVPacket *packet;
     long int decodedpktindex = 0;
 
-    int frameIndex = 0;
+    long int frameIndex = 0;
     int got_frame = 0;
     int size = 0;
 
@@ -195,22 +208,26 @@ int FFmpegWrapper::FFmpegDecodeAudio()
             }
             if (ffmpegdebug > 3) {
                 dumpdecodeData(frame,  outnumChannels);
-                ALOGI("%s pktindex =%d packet->size=%d consumed=%d got_frame=%d \n",__func__, decodedpktindex, packet->size,consumed,got_frame);
-                ALOGI("%s frame->pkt_dts=%lld  frame->pts=%lld packet->pts=%lld ",__func__,frame->pkt_dts, frame->pts,packet->pts);
+                ALOGI("%s pktindex =%d packet->size=%d consumed=%d got_frame=%d \n",
+                      __func__, decodedpktindex, packet->size,consumed,got_frame);
+                ALOGI("%s frame->pkt_dts=%lld  frame->pts=%lld packet->pts=%lld ",
+                      __func__,frame->pkt_dts, frame->pts,packet->pts);
             }
+
             //样本字节数 * 单通道样本数 * 通道数
             size = av_get_bytes_per_sample((AVSampleFormat)frame->format) * frame->nb_samples * outnumChannels;
-            if (ffmpegdebug > 3) { ALOGI("%s data.size=%d \n",__func__, size); }
             uint8_t * outBuffer = (uint8_t *) av_malloc(size);
             swr_convert(swrCtx, &outBuffer, frame->nb_samples, (const uint8_t **)frame->data, frame->nb_samples);
-
             xdata data;
             data.data = (uint8_t *)outBuffer;
             data.size = size;
+            data.frameindex = frameIndex++;
+            if (ffmpegdebug > 2) {
+                dumpresampleData(data.data, data.size);
+                ALOGI("%s blockPut frameindex=%ld data.size=%d \n",__func__, frameIndex, size);
+            }
             mqueue->blockPut(data);
-
             free(outBuffer);
-            frameIndex++;
 
             packet->data += consumed;
             packet->size -= consumed;

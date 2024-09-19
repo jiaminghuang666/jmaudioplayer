@@ -6,7 +6,7 @@
 #include "ALOG.h"
 #include "jmUntil.h"
 
-static bool debug = false;
+static bool opensldebug = true;
 
 static SLObjectItf engineSL = NULL;
 static SLEngineItf eng = NULL;
@@ -14,8 +14,6 @@ static SLObjectItf mix = NULL;
 static SLObjectItf player = NULL;
 static SLPlayItf iplayer = NULL;
 static SLAndroidSimpleBufferQueueItf pcmQue = NULL;
-
-static bool dumpdataEnable = false;
 
 openSLWrapper::openSLWrapper(XData * queue)
 {
@@ -45,9 +43,9 @@ static SLEngineItf CreateSL()
     return en;
 }
 
-static int dumpPcmData(void *data, int size)
+static int dumprenderData(void *data, int size)
 {
-    FILE *file = fopen("/data/output.pcm","a");
+    FILE *file = fopen("/data/outputrender.pcm","a");
     if (!file) {
         ALOGE("%s get data is not enough size:%d  ..", __func__ ,size);
         return -1;
@@ -65,15 +63,14 @@ void openSLWrapper::PlayCall(void *bufq)
 
     xdata d = mqueue->blockGet();
     if (d.size <= 0) {
-	   ALOGE("%s get data is not enough size:%d  ..", __func__ ,d.size);
+	   ALOGE("%s get data is not enough frame size:%d  ..", __func__ ,d.size);
 	   return ;
 	}
-    //if (debug)
-        ALOGD("%s  successful size:%d  ..", __func__ ,d.size);
-    if (dumpdataEnable) {
-        dumpPcmData(d.data,d.size);
-    }
 
+    if (opensldebug) {
+        ALOGD("%s  blockGet render frameindex = %ld : frame size = %d", __func__ ,d.frameindex, d.size);
+        dumprenderData(d.data,d.size);
+    }
     memcpy(buf, d.data,d.size);
 	if (pcmQue && (*pcmQue)) {
         (*pcmQue)->Enqueue(pcmQue,buf, d.size);	
@@ -202,7 +199,6 @@ int openSLWrapper::releaseOpenSL()
 
 void openSLWrapper::renderpcm()
 {
-    //PlayCall(pcmQue);
     PcmCall(pcmQue,this);
     return ;
 }
@@ -210,13 +206,12 @@ void openSLWrapper::renderpcm()
 void * _renderpcm(void *args)
 {
     ALOGD("%s start ..", __func__ );
-    //XSleep(2);
     openSLWrapper *p = (openSLWrapper *)args;
     p->renderpcm();
 
     (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PLAYING);
     pthread_exit(0);
-
+    ALOGD("%s end ..", __func__ );
     return NULL;
 }
 
