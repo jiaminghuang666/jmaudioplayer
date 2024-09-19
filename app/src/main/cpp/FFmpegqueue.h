@@ -134,7 +134,7 @@ inline static void * dequeue(Queue *pktQueue, long int * pktindex)
     if (queuedebug) ALOGD("%s pktindex=%d ",__func__, tempNode->pktindex);
     pktQueue->head = tempNode->next;
 
-    if (pktQueue->head == NULL){
+    if (pktQueue->head == NULL) {
         pktQueue->tail = NULL;
         ALOGD("%s head == NULL ...",__func__ );
     }

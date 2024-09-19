@@ -26,10 +26,15 @@ public:
         return &mjmAudioPlayer;
     }
 
-     int createjmAudioPlayer(const char *Url);
-     int releasejmAudioPlayer();
-     int play();
-     int getParam(int id, void *param);
+    int setdataSource(const char *Url);
+    int prepare_async();
+    int start();
+    int stop();
+    int pause();
+    int seek();
+    long int getCurrentPosition();
+    long int getDuration();
+    int getParam(int id, void *param);
 
 private:
     int postEvent(int id,int arg1,int arg2);
@@ -37,6 +42,7 @@ private:
     FFmpegWrapper * mffmpeg ;
     openSLWrapper * mopenSl ;
     XData * queue;
+    const char *myUrl;
 };
 
 

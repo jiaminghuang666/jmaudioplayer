@@ -32,7 +32,8 @@ public:
     int FFmpegRelease();
 
     audioParam getAPara();
-    long getDuration();
+    long int getDuration();
+    long int getCurrentPosition();
 
     int FFmpegInitResample();
 
@@ -41,7 +42,6 @@ public:
 
     int startDecode(bool playing);
     int startDemux(bool playing);
-    //std::vector<AVFrame *> queue;
 
 private:
 
@@ -70,6 +70,8 @@ private:
     pthread_t demuxId;
 
     long int pktindex = 0;
+
+    long int frame_pts = 0;
 
 };
 

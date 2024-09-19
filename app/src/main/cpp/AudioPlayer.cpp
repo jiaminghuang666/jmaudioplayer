@@ -21,15 +21,29 @@ jmAudioPlayer::~jmAudioPlayer()
     ALOGD("%s", __func__ );
 }
 
-int jmAudioPlayer::createjmAudioPlayer(const char *Url)
+int jmAudioPlayer::setdataSource(const char *Url)
 {
+    ALOGD("%s", __func__ );
+    if (!Url) {
+        ALOGE("%s Url = %s", __func__ ,Url );
+        return -1;
+    }
+    myUrl = Url;
+    ALOGE("%s Url = %d", __func__ ,Url );
+    return 0;
+}
+
+
+int jmAudioPlayer::prepare_async()
+{
+    ALOGD("%s", __func__ );
     int ret = -1;
 
     queue = new XData();
     mffmpeg = new FFmpegWrapper(queue);
     mopenSl = new openSLWrapper(queue);
 
-    ret = mffmpeg->FFmpegInit(Url);
+    ret = mffmpeg->FFmpegInit(myUrl);
     if (ret) {
         ALOGE("%s FFmpegInit fail !!",__func__ );
     }
@@ -41,17 +55,10 @@ int jmAudioPlayer::createjmAudioPlayer(const char *Url)
     return 0;
 }
 
-int jmAudioPlayer::releasejmAudioPlayer()
-{
-    mffmpeg->FFmpegRelease();
-    mopenSl->releaseOpenSL();
 
-    delete(queue);
-    return 0;
-}
-
-int jmAudioPlayer::play()
+int jmAudioPlayer::start()
 {
+    ALOGD("%s", __func__ );
     int ret = -1;
 
     ret = mffmpeg->startDemux(true);
@@ -62,9 +69,51 @@ int jmAudioPlayer::play()
     ret = mopenSl->createOpenSL(&mparam);
 
     ret = mopenSl->startRender();
-
     return 0;
 }
+
+int jmAudioPlayer::stop()
+{
+    ALOGD("%s", __func__ );
+    mffmpeg->FFmpegRelease();
+    mopenSl->releaseOpenSL();
+
+    delete(queue);
+    return 0;
+}
+
+int jmAudioPlayer::pause()
+{
+    ALOGD("%s", __func__ );
+    return 0;
+}
+
+int jmAudioPlayer::seek()
+{
+    ALOGD("%s", __func__ );
+    return 0;
+}
+
+long int jmAudioPlayer::getCurrentPosition()
+{
+    int64_t myPosition;
+
+    myPosition = mffmpeg->getCurrentPosition();
+    //ALOGD("%s myPosition= %lld  !!",__func__ ,myPosition );
+
+    return myPosition;
+}
+
+long int jmAudioPlayer::getDuration()
+{
+    int64_t myDuration;
+
+    myDuration = mffmpeg->getDuration();
+    //ALOGD("%s duration= %lld  !!",__func__ , myDuration );
+
+   return myDuration;
+}
+
 
 int jmAudioPlayer::getParam(int id, void *param)
 {
@@ -72,12 +121,12 @@ int jmAudioPlayer::getParam(int id, void *param)
         return -1;
 
     switch (id) {
-        case PARAM_DURATION:
+        /*case PARAM_DURATION:
             *(int64_t *)param = mffmpeg->getDuration();
             ALOGD("%s duration %lld  !!",__func__ ,*(int64_t *)param );
             break;
         case PARAM_POSITION:
-            break;
+            break;*/
 
         default:
             ALOGE("%s  fail !!",__func__ );
@@ -94,4 +143,12 @@ int jmAudioPlayer::postEvent(int id,int arg1,int arg2)
 
     return 0;
 }
+
+
+
+
+
+
+
+
 

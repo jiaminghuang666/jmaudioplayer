@@ -126,7 +126,9 @@ Java_com_example_jmaudioplayer_PlaybackActivity_setDataSource(JNIEnv *env, jobje
 
     //mjmAudioPlayer = jmAudioPlayer::getInstant();
     const char *myurl = env->GetStringUTFChars(url, 0);
-    ret = mjmAudioPlayer->createjmAudioPlayer(myurl);
+    ret = mjmAudioPlayer->setdataSource(myurl);
+    ret = mjmAudioPlayer->prepare_async();
+
     env->ReleaseStringUTFChars(url,myurl );
 
     return ret;
@@ -144,7 +146,7 @@ Java_com_example_jmaudioplayer_PlaybackActivity_releaseSource(JNIEnv *env, jobje
     gJavaObject = NULL; // 将指针设置为NULL，避免野指针
     gJavaVM->DetachCurrentThread();
 
-    mjmAudioPlayer->releasejmAudioPlayer();
+    mjmAudioPlayer->stop();
     if(mjmAudioPlayer != nullptr)
         delete mjmAudioPlayer;
     return 0;
@@ -154,7 +156,9 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_jmaudioplayer_PlaybackActivity_startPlay(JNIEnv *env, jobject thiz) {
     // TODO: implement startPlay()
-    mjmAudioPlayer->play();
+    ALOGD("%s start ",__func__);
+    mjmAudioPlayer->start();
+
     return;
 }
 
@@ -162,6 +166,7 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_jmaudioplayer_PlaybackActivity_stopPlay(JNIEnv *env, jobject thiz) {
     // TODO: implement stopPlay()
+    mjmAudioPlayer->stop();
     return;
 }
 
@@ -169,7 +174,32 @@ extern "C"
 JNIEXPORT void JNICALL
 Java_com_example_jmaudioplayer_PlaybackActivity_pause(JNIEnv *env, jobject thiz) {
     // TODO: implement pause()
+    mjmAudioPlayer->pause();
     return;
 }
 
 
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_jmaudioplayer_PlaybackActivity_seek(JNIEnv *env, jobject thiz) {
+    // TODO: implement seek()
+    mjmAudioPlayer->seek();
+
+    return;
+
+}
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_com_example_jmaudioplayer_PlaybackActivity_getCurrentPosition(JNIEnv *env, jobject thiz) {
+    // TODO: implement getCurrentPosition()
+
+    return mjmAudioPlayer->getCurrentPosition();
+}
+
+
+extern "C"
+JNIEXPORT jlong JNICALL
+Java_com_example_jmaudioplayer_PlaybackActivity_getDuration(JNIEnv *env, jobject thiz) {
+    // TODO: implement getDuration()
+    return mjmAudioPlayer->getDuration();
+}

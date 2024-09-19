@@ -15,7 +15,11 @@ public class PlaybackActivity extends FragmentActivity {
 
     private static final String TAG = "jiaming PlaybackActivity";
     private  Thread playbackThread = null;
+    private  Thread playerInfoThread = null;
     private static JMAudioPlayer myJMAudioPlayer;
+
+    private static long myDuration = 0;
+    private static long myPosition = 0;
 
     static {
        System.loadLibrary("jmaudioplayer");
@@ -41,6 +45,12 @@ public class PlaybackActivity extends FragmentActivity {
             playbackThread = new Thread(runnable);
             playbackThread.start();
         }
+        if (playerInfoThread ==null) {
+            playerInfoThread = new Thread(playerInforrunnable);
+            playerInfoThread.start();
+        }
+
+
     }
     @Override
     protected void onResume(){
@@ -77,9 +87,27 @@ public class PlaybackActivity extends FragmentActivity {
         @Override
         public void run() {
             int ret = 0 ;
-            Log.d(TAG, " PlaybackActivity " );
-           ret =  setDataSource("/data/guyongzhe.mp3",this); // "/data/guyongzhe.mp3"  "/data/1080.mp4" "/data/dukou.wav"
+            Log.d(TAG, " runnable " );
+            ret =  setDataSource("/data/guyongzhe.mp3",this); // "/data/guyongzhe.mp3"  "/data/1080.mp4" "/data/dukou.wav"
             startPlay();
+
+        }
+    };
+
+    private Runnable playerInforrunnable = new Runnable() {
+        @Override
+        public void run() {
+
+            try {
+                for(;;) {
+                    Thread.sleep(1000);
+                    myPosition = getCurrentPosition();
+                    myDuration = getDuration();
+                    //Log.d(TAG, " playerInforrunnable myPosition = " + myPosition +" " + "myDuration ="+myDuration );
+                }
+            }catch ( InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     };
 
@@ -90,5 +118,10 @@ public class PlaybackActivity extends FragmentActivity {
    public native void startPlay();
    public native void stopPlay();
    public native void pause();
+   public native void seek();
 
+   public native long getCurrentPosition();
+
+   public native long getDuration();
 }
+

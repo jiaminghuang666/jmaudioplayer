@@ -5,6 +5,9 @@
 #include "FFmpegWrapper.h"
 #include "ALOG.h"
 
+#define fftime_to_milliseconds(ts) (av_rescale(ts, 1000, AV_TIME_BASE))
+#define milliseconds_to_fftime(ms) (av_rescale(ms, AV_TIME_BASE, 1000))
+
 static int ffmpegdebug = 3;
 
 FFmpegWrapper::FFmpegWrapper(XData * queue)
@@ -139,14 +142,50 @@ audioParam FFmpegWrapper::getAPara()
     return mParam;
 }
 
-long FFmpegWrapper::getDuration()
+long int FFmpegWrapper::getDuration()
 {
-    if (fmtCtx)
-        return fmtCtx->duration * 1000 / AV_TIME_BASE;
-    else
-        return 1;
+    int64_t duration = 0;
+    int64_t duration1 = 0;
 
+    if (!fmtCtx) {
+        ALOGE("%s fmtCtx = %p ！！", __func__, fmtCtx );
+        return -1;
+    }
+    duration = fftime_to_milliseconds(fmtCtx->duration);
+
+    return duration;
 }
+
+long int FFmpegWrapper::getCurrentPosition()
+{
+    int64_t startPos;
+    int64_t startDiff = 0;
+    int64_t curPos = 0;
+    int64_t curDiff = 0;
+
+    if (!fmtCtx) {
+        ALOGE("%s fmtCtx = %p ！！", __func__, fmtCtx );
+        return -1;
+    }
+
+    startPos = fmtCtx->start_time;
+    if( startPos > 0 && startPos != AV_NOPTS_VALUE )
+        startDiff = fftime_to_milliseconds(startPos);
+
+    curPos = frame_pts;
+    curDiff = fftime_to_milliseconds(curPos);
+    if (ffmpegdebug > 3)
+        ALOGD("%s startPos = %lld startDiff=%lld curPos=%lld curDiff = %lld !! \n",
+              __func__, startPos, startDiff, curPos, curDiff );
+
+    if (curPos < 0 || curPos < startPos)
+        return 0;
+
+    int64_t adjPos = curDiff - startDiff;
+
+    return adjPos;
+}
+
 
 static int dumpdecodeData(AVFrame *frame, int outnumChannels)
 {
@@ -213,6 +252,7 @@ int FFmpegWrapper::FFmpegDecodeAudio()
                 ALOGI("%s frame->pkt_dts=%lld  frame->pts=%lld packet->pts=%lld ",
                       __func__,frame->pkt_dts, frame->pts,packet->pts);
             }
+            frame_pts = frame->pts;
 
             //样本字节数 * 单通道样本数 * 通道数
             size = av_get_bytes_per_sample((AVSampleFormat)frame->format) * frame->nb_samples * outnumChannels;
