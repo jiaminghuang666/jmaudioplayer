@@ -59,4 +59,42 @@ public class JMAudioPlayer {
 
     public native void testFan();
     public native long getParam(int id);
+
+
+    private  String unitFormat(int i) {
+        String reStr = null;
+        if (i >= 0 && i < 10) {
+            reStr = "0" + Integer.toString(i);
+        } else {
+            reStr =  Integer.toString(i);
+        }
+        return reStr;
+    }
+
+    public String secToTime(int i) {
+        String retStr = null;
+        int hour = 0;
+        int minute = 0;
+        int second = 0;
+
+        if (i <= 0) {
+            return "00:00:00";
+        }else {
+            minute = i / 60;
+            if (minute < 60) {
+                second = i % 60;
+                retStr = "00:" + unitFormat(minute) + ":" + unitFormat(second);
+            } else {
+                hour = minute / 60;
+                if (hour > 99) return "99:59:59";
+                minute = minute % 60;
+                second = i % 60;
+                retStr = unitFormat(hour) + ":" + unitFormat(minute) + ":" + unitFormat(second);
+            }
+        }
+        return retStr;
+    }
+
+
+
 }
