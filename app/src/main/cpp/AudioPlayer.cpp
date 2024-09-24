@@ -34,7 +34,7 @@ int jmAudioPlayer::setdataSource(const char *Url)
 }
 
 
-int jmAudioPlayer::prepare_async()
+int jmAudioPlayer::prepareAsync()
 {
     ALOGD("%s", __func__ );
     int ret = -1;

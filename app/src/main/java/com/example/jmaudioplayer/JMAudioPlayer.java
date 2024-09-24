@@ -9,9 +9,9 @@ import android.util.Log;
 public class JMAudioPlayer {
 
     private static final String TAG = "JMAudioPlayer";
-    private static final int MSG_START = 0;
-    private static final int MSG_ERROR = 100;     /* arg1 = error */
-    private static final int MSG_EOS   = 200;
+
+    private Handler handler;
+
 
     static {
         System.loadLibrary("jmaudioplayer");
@@ -25,19 +25,62 @@ public class JMAudioPlayer {
         testFan();
     }
 
+    public void setHandler(Handler handler)
+    {
+        this.handler = handler;
+
+    }
+
+    public void playerstart() {
+        int ret = 0;
+        ret =  setDataSource("/data/guyongzhe.mp3",this); // "/data/guyongzhe.mp3"  "/data/1080.mp4" "/data/dukou.wav"
+        prepareAsync();
+
+        start();
+
+        handler.sendEmptyMessage(Constants.MSG_MUSIC_INIT);
+        handler.sendEmptyMessage(Constants.MSG_MUSIC_START);
+        return;
+    }
+
+    public void playerStop() {
+        releaseSource();
+        stop();
+        return;
+    }
+
+    public void playerPasue() {
+        pause();
+        handler.sendEmptyMessage(Constants.MSG_MUSIC_PAUSE);
+        return;
+    }
+
+    public void playerseek() {
+        seek();
+        return;
+    }
+
+    public long  playergetCurrentPosition() {
+        return getCurrentPosition();
+    }
+
+    public long playergetDuration() {
+        return getDuration();
+    }
+
+
     private Handler mPlayerMsgHandler =new Handler(Looper.getMainLooper()) {
         public void handleMessage( Message msg) {
             switch (msg.what) {
-                case MSG_START:
+                case Constants.MSG_START:
                     Log.d(TAG, " handleMessage MSG_START" );
                     break;
-                case MSG_ERROR:
+                case Constants.MSG_ERROR:
                     Log.d(TAG, " handleMessage MSG_ERROR" );
                     break;
-                case MSG_EOS:
+                case Constants.MSG_EOS:
                     Log.d(TAG, " handleMessage MSG_EOS" );
                     break;
-
                 default:
                     Log.d(TAG, " handleMessage default" );
                     break;
@@ -96,4 +139,16 @@ public class JMAudioPlayer {
         return retStr;
     }
 
+
+    public native void start();
+    public native int setDataSource(String url,Object handle);
+    public native int prepareAsync();
+
+    public native int releaseSource();
+
+    public native void stop();
+    public native void pause();
+    public native void seek();
+    public native long getCurrentPosition();
+    public native long getDuration();
 }

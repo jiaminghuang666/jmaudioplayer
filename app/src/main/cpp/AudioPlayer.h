@@ -27,7 +27,7 @@ public:
     }
 
     int setdataSource(const char *Url);
-    int prepare_async();
+    int prepareAsync();
     int start();
     int stop();
     int pause();

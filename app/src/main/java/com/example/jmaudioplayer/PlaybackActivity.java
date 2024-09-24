@@ -21,11 +21,7 @@ public class PlaybackActivity extends FragmentActivity {
 
     private static final String TAG = "jiaming PlaybackActivity";
     private  Thread playbackThread = null;
-    private  Thread playerInfoThread = null;
     private static JMAudioPlayer myJMAudioPlayer;
-
-    private static long myDuration = 0;
-    private static long myPosition = 0;
 
     //control bar button
     private LinearLayout controlBar = null;
@@ -42,23 +38,12 @@ public class PlaybackActivity extends FragmentActivity {
     private int totaltime = 0;
     private int curtime = 0;
 
-    public static final int MSG_MUSIC_INIT = 0;
-
-    public static final int MSG_MUSIC_START = 1;
-
-    public static final int MSG_MUSIC_PAUSE = 2;
-
-    public static final int MSG_TOGGLE_MODE = 3;
-
-    public static final int MSG_PLAY_COMPLETE = 4;
-
-
-
+    private static long myDuration = 0;
+    private static long myPosition = 0;
 
     static {
        System.loadLibrary("jmaudioplayer");
     }
-
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -74,6 +59,9 @@ public class PlaybackActivity extends FragmentActivity {
 
         }*/
         myJMAudioPlayer = new JMAudioPlayer(this);
+
+        myJMAudioPlayer.setHandler(handler);
+
     }
 
     @Override
@@ -107,11 +95,13 @@ public class PlaybackActivity extends FragmentActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+        myJMAudioPlayer.playerStop();
+
         handler.removeCallbacksAndMessages(null);
         handler = null;
        // mPlayerMsgHandler.removeCallbacksAndMessages(null);
        // mPlayerMsgHandler = null;
-        releaseSource();
+
     }
 
     protected void onRestart() {
@@ -180,12 +170,19 @@ public class PlaybackActivity extends FragmentActivity {
     }
 
 
+    public void updateView() {
+        myDuration =   myJMAudioPlayer.playergetDuration();
+        Log.d(TAG, " playerInforrunnable  myDuration =" + myDuration );
+        totalTimeTx.setText(myJMAudioPlayer.secToTime((int)myDuration));
+    }
+
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
             int ret = 0 ;
             Log.d(TAG, " runnable " );
-            playerStart();
+            //playerStart();
+            myJMAudioPlayer.playerstart();
         }
     };
 
@@ -194,16 +191,12 @@ public class PlaybackActivity extends FragmentActivity {
         public void run() {
             Log.d(TAG, " playerInforrunnable  run " );
             try {
-                //for(;;) {
+               // for(;;) {
                     Thread.sleep(1000);
-
-                    playergetCurrentPosition();
-                    playergetDuration();
-                    //Log.d(TAG, " playerInforrunnable  myDuration =" + temp );
-                    totalTimeTx.setText("11:11");
+                    myPosition =  myJMAudioPlayer.playergetCurrentPosition();
+                    curTimeTx.setText(myJMAudioPlayer.secToTime((int)myPosition));
                     //Log.d(TAG, " playerInforrunnable myPosition = " + myPosition +" " + "myDuration ="+myDuration );
-
-                //}
+               // }
             }catch ( InterruptedException e) {
                 e.printStackTrace();
             }
@@ -214,22 +207,23 @@ public class PlaybackActivity extends FragmentActivity {
 private Handler handler = new Handler(Looper.getMainLooper()) {
     public void handleMessage(Message msg) {
         switch (msg.what) {
-            case MSG_MUSIC_INIT:
-                Log.d (TAG, "MSG_MUSIC_INIT onClick");
+            case Constants.MSG_MUSIC_INIT:
+                Log.d (TAG, "handleMessage MSG_MUSIC_INIT ");
+                updateView();
                 break;
-            case MSG_MUSIC_START:
-                Log.d (TAG, "MSG_MUSIC_START onClick");
+            case Constants.MSG_MUSIC_START:
+                Log.d (TAG, "handleMessage MSG_MUSIC_START ");
                 handler.post(playerInforrunnable);
                 break;
-            case MSG_MUSIC_PAUSE:
-                Log.d (TAG, "MSG_MUSIC_PAUSE onClick");
+            case Constants.MSG_MUSIC_PAUSE:
+                Log.d (TAG, "handleMessage MSG_MUSIC_PAUSE ");
                 handler.removeCallbacks(playerInforrunnable);
                 break;
-            case MSG_TOGGLE_MODE:
-                Log.d (TAG, "MSG_TOGGLE_MODE onClick");
+            case Constants.MSG_TOGGLE_MODE:
+                Log.d (TAG, "handleMessage MSG_TOGGLE_MODE ");
                 break;
-            case MSG_PLAY_COMPLETE:
-                Log.d (TAG, "MSG_PLAY_COMPLETE onClick");
+            case Constants.MSG_PLAY_COMPLETE:
+                Log.d (TAG, "handleMessage MSG_PLAY_COMPLETE ");
                 break;
             default:
                 break;
@@ -237,57 +231,5 @@ private Handler handler = new Handler(Looper.getMainLooper()) {
     }
 };
 
-
-    public void playerStart() {
-        Log.d (TAG, "playerStart");
-        int ret = 0;
-
-        ret =  setDataSource("/data/guyongzhe.mp3",this); // "/data/guyongzhe.mp3"  "/data/1080.mp4" "/data/dukou.wav"
-        startPlay();
-        handler.sendEmptyMessage(MSG_MUSIC_START);
-
-        return ;
-    }
-
-    public void playerStop() {
-        stopPlay();
-        return;
-    }
-
-    public void playerPasue() {
-        pause();
-
-        return;
-    }
-
-    public void playerseek() {
-        seek();
-
-        return;
-    }
-
-    public void playergetCurrentPosition() {
-        myPosition = getCurrentPosition();
-
-        return;
-    }
-
-    public void playergetDuration() {
-        myDuration = getDuration();
-
-        return;
-    }
-
-   public native int setDataSource(String url,Object handle);
-   public native int releaseSource();
-
-   public native void startPlay();
-   public native void stopPlay();
-   public native void pause();
-   public native void seek();
-
-   public native long getCurrentPosition();
-
-   public native long getDuration();
 }
 

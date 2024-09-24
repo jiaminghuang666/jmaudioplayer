@@ -115,7 +115,7 @@ Java_com_example_jmaudioplayer_JMAudioPlayer_getParam(JNIEnv *env, jobject thiz,
     return value;
 }
 
-
+/*
 extern "C"
 JNIEXPORT jint JNICALL
 Java_com_example_jmaudioplayer_PlaybackActivity_setDataSource(JNIEnv *env, jobject thiz,
@@ -160,46 +160,103 @@ Java_com_example_jmaudioplayer_PlaybackActivity_startPlay(JNIEnv *env, jobject t
     mjmAudioPlayer->start();
 
     return;
+}*/
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_example_jmaudioplayer_JMAudioPlayer_start(JNIEnv *env, jobject thiz) {
+    // TODO: implement start()
+    ALOGD("%s start ",__func__);
+    mjmAudioPlayer->start();
+
+    return;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_jmaudioplayer_JMAudioPlayer_setDataSource(JNIEnv *env, jobject thiz, jstring url,
+                                                           jobject handle) {
+    // TODO: implement setDataSource()
+    ALOGD("%s start ",__func__);
+    int ret = -1;
+
+    //mjmAudioPlayer = jmAudioPlayer::getInstant();
+    const char *myurl = env->GetStringUTFChars(url, 0);
+    ret = mjmAudioPlayer->setdataSource(myurl);
+    ret = mjmAudioPlayer->prepareAsync();
+
+    env->ReleaseStringUTFChars(url,myurl );
+
+    return ret;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_jmaudioplayer_JMAudioPlayer_prepareAsync(JNIEnv *env, jobject thiz) {
+    // TODO: implement prepareAsync()
+    ALOGD("%s start ",__func__);
+    int ret = -1;
+   // ret = mjmAudioPlayer->prepareAsync();
+
+    return ret;
+}
+
+extern "C"
+JNIEXPORT jint JNICALL
+Java_com_example_jmaudioplayer_JMAudioPlayer_releaseSource(JNIEnv *env, jobject thiz) {
+    // TODO: implement releaseSource()
+    ALOGD("%s start ",__func__);
+    env->DeleteGlobalRef (g_myjclass);
+    g_myjclass = NULL;
+    ALOGD("%s end 1",__func__);
+    env->DeleteGlobalRef(gJavaObject);
+    gJavaObject = NULL; // 将指针设置为NULL，避免野指针
+    gJavaVM->DetachCurrentThread();
+
+    mjmAudioPlayer->stop();
+    if(mjmAudioPlayer != nullptr)
+        delete mjmAudioPlayer;
+    return 0;
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_jmaudioplayer_PlaybackActivity_stopPlay(JNIEnv *env, jobject thiz) {
-    // TODO: implement stopPlay()
+Java_com_example_jmaudioplayer_JMAudioPlayer_stop(JNIEnv *env, jobject thiz) {
+    // TODO: implement stop()
     mjmAudioPlayer->stop();
     return;
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_jmaudioplayer_PlaybackActivity_pause(JNIEnv *env, jobject thiz) {
+Java_com_example_jmaudioplayer_JMAudioPlayer_pause(JNIEnv *env, jobject thiz) {
     // TODO: implement pause()
     mjmAudioPlayer->pause();
     return;
 }
-
-
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_jmaudioplayer_PlaybackActivity_seek(JNIEnv *env, jobject thiz) {
+Java_com_example_jmaudioplayer_JMAudioPlayer_seek(JNIEnv *env, jobject thiz) {
     // TODO: implement seek()
     mjmAudioPlayer->seek();
-
     return;
-
 }
+
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_com_example_jmaudioplayer_PlaybackActivity_getCurrentPosition(JNIEnv *env, jobject thiz) {
+Java_com_example_jmaudioplayer_JMAudioPlayer_getCurrentPosition(JNIEnv *env, jobject thiz) {
     // TODO: implement getCurrentPosition()
 
     return mjmAudioPlayer->getCurrentPosition();
 }
-
-
 extern "C"
 JNIEXPORT jlong JNICALL
-Java_com_example_jmaudioplayer_PlaybackActivity_getDuration(JNIEnv *env, jobject thiz) {
+Java_com_example_jmaudioplayer_JMAudioPlayer_getDuration(JNIEnv *env, jobject thiz) {
     // TODO: implement getDuration()
+
     return mjmAudioPlayer->getDuration();
 }
+
+
+
+
