@@ -42,6 +42,18 @@ public class PlaybackActivity extends FragmentActivity {
     private int totaltime = 0;
     private int curtime = 0;
 
+    public static final int MSG_MUSIC_INIT = 0;
+
+    public static final int MSG_MUSIC_START = 1;
+
+    public static final int MSG_MUSIC_PAUSE = 2;
+
+    public static final int MSG_TOGGLE_MODE = 3;
+
+    public static final int MSG_PLAY_COMPLETE = 4;
+
+
+
 
     static {
        System.loadLibrary("jmaudioplayer");
@@ -52,8 +64,6 @@ public class PlaybackActivity extends FragmentActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_playback);
-
-
         initView();
 
         /*if (savedInstanceState == null) {
@@ -74,11 +84,6 @@ public class PlaybackActivity extends FragmentActivity {
             playbackThread = new Thread(runnable);
             playbackThread.start();
         }
-        if (playerInfoThread ==null) {
-            playerInfoThread = new Thread(playerInforrunnable);
-            playerInfoThread.start();
-        }
-
 
     }
     @Override
@@ -102,6 +107,8 @@ public class PlaybackActivity extends FragmentActivity {
     protected void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+        handler.removeCallbacksAndMessages(null);
+        handler = null;
        // mPlayerMsgHandler.removeCallbacksAndMessages(null);
        // mPlayerMsgHandler = null;
         releaseSource();
@@ -112,39 +119,8 @@ public class PlaybackActivity extends FragmentActivity {
         Log.d(TAG, "onRestart");
     }
 
-    private Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            int ret = 0 ;
-            Log.d(TAG, " runnable " );
-            ret =  setDataSource("/data/guyongzhe.mp3",this); // "/data/guyongzhe.mp3"  "/data/1080.mp4" "/data/dukou.wav"
-            startPlay();
-
-        }
-    };
-
-    private Runnable playerInforrunnable = new Runnable() {
-        @Override
-        public void run() {
-            try {
-
-                //curTimeTx.setText(myJMAudioPlayer.secToTime((int)myDuration));
-               // Log.d(TAG, " playerInforrunnable  myDuration =" + myDuration );
-                for(;;) {
-                    Thread.sleep(1000);
-                    myPosition = getCurrentPosition();
-                    myDuration = getDuration();
-                    //Log.d(TAG, " playerInforrunnable myPosition = " + myPosition +" " + "myDuration ="+myDuration );
-
-                }
-            }catch ( InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    };
-
-
     private void initView() {
+        Log.d (TAG, "browserBtn onClick");
         controlBar = (LinearLayout) findViewById (R.id.infobarLayout);
 
         browserBtn = (ImageButton) findViewById (R.id.BrowserBtn);
@@ -159,8 +135,8 @@ public class PlaybackActivity extends FragmentActivity {
         curTimeTx =(TextView) findViewById(R.id.CurTime);
         totalTimeTx = (TextView) findViewById(R.id.TotalTime);
 
-       // curTimeTx.setText(myJMAudioPlayer.secToTime(totaltime));
-       // totalTimeTx.setText(myJMAudioPlayer.secToTime(curtime));
+        // curTimeTx.setText(myJMAudioPlayer.secToTime(totaltime));
+        // totalTimeTx.setText(myJMAudioPlayer.secToTime(curtime));
         browserBtn.setOnClickListener (new ImageButton.OnClickListener() {
             public void onClick (View v) {
                 Log.d (TAG, "browserBtn onClick");
@@ -204,10 +180,105 @@ public class PlaybackActivity extends FragmentActivity {
     }
 
 
+    private Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            int ret = 0 ;
+            Log.d(TAG, " runnable " );
+            playerStart();
+        }
+    };
+
+    private final Runnable playerInforrunnable = new Runnable() {
+        @Override
+        public void run() {
+            Log.d(TAG, " playerInforrunnable  run " );
+            try {
+                //for(;;) {
+                    Thread.sleep(1000);
+
+                    playergetCurrentPosition();
+                    playergetDuration();
+                    //Log.d(TAG, " playerInforrunnable  myDuration =" + temp );
+                    totalTimeTx.setText("11:11");
+                    //Log.d(TAG, " playerInforrunnable myPosition = " + myPosition +" " + "myDuration ="+myDuration );
+
+                //}
+            }catch ( InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    };
 
 
+private Handler handler = new Handler(Looper.getMainLooper()) {
+    public void handleMessage(Message msg) {
+        switch (msg.what) {
+            case MSG_MUSIC_INIT:
+                Log.d (TAG, "MSG_MUSIC_INIT onClick");
+                break;
+            case MSG_MUSIC_START:
+                Log.d (TAG, "MSG_MUSIC_START onClick");
+                handler.post(playerInforrunnable);
+                break;
+            case MSG_MUSIC_PAUSE:
+                Log.d (TAG, "MSG_MUSIC_PAUSE onClick");
+                handler.removeCallbacks(playerInforrunnable);
+                break;
+            case MSG_TOGGLE_MODE:
+                Log.d (TAG, "MSG_TOGGLE_MODE onClick");
+                break;
+            case MSG_PLAY_COMPLETE:
+                Log.d (TAG, "MSG_PLAY_COMPLETE onClick");
+                break;
+            default:
+                break;
+        }
+    }
+};
 
-    public native int setDataSource(String url,Object handle);
+
+    public void playerStart() {
+        Log.d (TAG, "playerStart");
+        int ret = 0;
+
+        ret =  setDataSource("/data/guyongzhe.mp3",this); // "/data/guyongzhe.mp3"  "/data/1080.mp4" "/data/dukou.wav"
+        startPlay();
+        handler.sendEmptyMessage(MSG_MUSIC_START);
+
+        return ;
+    }
+
+    public void playerStop() {
+        stopPlay();
+        return;
+    }
+
+    public void playerPasue() {
+        pause();
+
+        return;
+    }
+
+    public void playerseek() {
+        seek();
+
+        return;
+    }
+
+    public void playergetCurrentPosition() {
+        myPosition = getCurrentPosition();
+
+        return;
+    }
+
+    public void playergetDuration() {
+        myDuration = getDuration();
+
+        return;
+    }
+
+   public native int setDataSource(String url,Object handle);
    public native int releaseSource();
 
    public native void startPlay();

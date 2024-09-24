@@ -92,9 +92,8 @@ public class JMAudioPlayer {
                 retStr = unitFormat(hour) + ":" + unitFormat(minute) + ":" + unitFormat(second);
             }
         }
+        Log.d(TAG, " secToTime retStr =" + retStr );
         return retStr;
     }
-
-
 
 }
