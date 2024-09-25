@@ -94,9 +94,9 @@ int jmAudioPlayer::seek()
     return 0;
 }
 
-long int jmAudioPlayer::getCurrentPosition()
+double jmAudioPlayer::getCurrentPosition()
 {
-    int64_t myPosition;
+    double myPosition;
 
     myPosition = mffmpeg->getCurrentPosition();
     //ALOGD("%s myPosition= %lld  !!",__func__ ,myPosition );

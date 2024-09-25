@@ -10,6 +10,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.fragment.app.FragmentActivity;
@@ -17,7 +18,7 @@ import androidx.fragment.app.FragmentActivity;
 /**
  * Loads {@link PlaybackVideoFragment}.
  */
-public class PlaybackActivity extends FragmentActivity {
+public class PlaybackActivity extends FragmentActivity implements SeekBar.OnSeekBarChangeListener{
 
     private static final String TAG = "jiaming PlaybackActivity";
     private  Thread playbackThread = null;
@@ -35,11 +36,7 @@ public class PlaybackActivity extends FragmentActivity {
     private TextView totalTimeTx = null;
     private TextView curTimeTx = null;
 
-    private int totaltime = 0;
-    private int curtime = 0;
-
-    private static long myDuration = 0;
-    private static long myPosition = 0;
+    private SeekBar seekPosition;
 
     static {
        System.loadLibrary("jmaudioplayer");
@@ -125,6 +122,10 @@ public class PlaybackActivity extends FragmentActivity {
         curTimeTx =(TextView) findViewById(R.id.CurTime);
         totalTimeTx = (TextView) findViewById(R.id.TotalTime);
 
+        seekPosition = findViewById(R.id.SeekBar);
+        seekPosition.setMax(100);
+        seekPosition.setOnSeekBarChangeListener((SeekBar.OnSeekBarChangeListener)this);
+
         // curTimeTx.setText(myJMAudioPlayer.secToTime(totaltime));
         // totalTimeTx.setText(myJMAudioPlayer.secToTime(curtime));
         browserBtn.setOnClickListener (new ImageButton.OnClickListener() {
@@ -170,18 +171,26 @@ public class PlaybackActivity extends FragmentActivity {
     }
 
 
-    public void updateView() {
-        myDuration =   myJMAudioPlayer.playergetDuration();
-        Log.d(TAG, " playerInforrunnable  myDuration =" + myDuration );
-        totalTimeTx.setText(myJMAudioPlayer.secToTime((int)myDuration));
+    @Override
+    public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
+
     }
+
+    @Override
+    public void onStartTrackingTouch(SeekBar seekBar) {
+
+    }
+
+    @Override
+    public void onStopTrackingTouch(SeekBar seekBar) {
+       // myJMplayer.Seek((double)seekBar.getProgress() / (double)seekBar.getMax());
+    }
+
+
 
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
-            int ret = 0 ;
-            Log.d(TAG, " runnable " );
-            //playerStart();
             myJMAudioPlayer.playerstart();
         }
     };
@@ -189,20 +198,23 @@ public class PlaybackActivity extends FragmentActivity {
     private final Runnable playerInforrunnable = new Runnable() {
         @Override
         public void run() {
-            Log.d(TAG, " playerInforrunnable  run " );
             try {
-               // for(;;) {
                     Thread.sleep(1000);
-                    myPosition =  myJMAudioPlayer.playergetCurrentPosition();
-                    curTimeTx.setText(myJMAudioPlayer.secToTime((int)myPosition));
-                    //Log.d(TAG, " playerInforrunnable myPosition = " + myPosition +" " + "myDuration ="+myDuration );
-               // }
+                    curTimeTx.setText(myJMAudioPlayer.secToTime((int)myJMAudioPlayer.playergetCurrentPosition()));
+                    seekPosition.setProgress((int)((myJMAudioPlayer.playergetCurrentPosition() / myJMAudioPlayer.playergetDuration()) * 100) );
+                    Log.d(TAG, " playerInforrunnable myPosition1 = " + myJMAudioPlayer.playergetCurrentPosition() +" " +
+                            "myPosition2 ="+myJMAudioPlayer.secToTime((int)myJMAudioPlayer.playergetCurrentPosition()) );
+                handler.postDelayed(this, 1000);
             }catch ( InterruptedException e) {
                 e.printStackTrace();
             }
         }
     };
 
+    public void updateView() {
+        Log.d(TAG, " playerInforrunnable  myDuration =" + myJMAudioPlayer.playergetDuration() );
+        totalTimeTx.setText(myJMAudioPlayer.secToTime((int)myJMAudioPlayer.playergetDuration()));
+    }
 
 private Handler handler = new Handler(Looper.getMainLooper()) {
     public void handleMessage(Message msg) {

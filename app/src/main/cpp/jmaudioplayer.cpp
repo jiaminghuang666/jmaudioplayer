@@ -243,7 +243,7 @@ Java_com_example_jmaudioplayer_JMAudioPlayer_seek(JNIEnv *env, jobject thiz) {
 }
 
 extern "C"
-JNIEXPORT jlong JNICALL
+JNIEXPORT jdouble  JNICALL
 Java_com_example_jmaudioplayer_JMAudioPlayer_getCurrentPosition(JNIEnv *env, jobject thiz) {
     // TODO: implement getCurrentPosition()
 

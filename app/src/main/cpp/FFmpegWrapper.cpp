@@ -145,45 +145,51 @@ audioParam FFmpegWrapper::getAPara()
 long int FFmpegWrapper::getDuration()
 {
     int64_t duration = 0;
-    int64_t duration1 = 0;
 
     if (!fmtCtx) {
         ALOGE("%s fmtCtx = %p ！！", __func__, fmtCtx );
         return -1;
     }
-    duration = fftime_to_milliseconds(fmtCtx->duration);
 
+    duration = fftime_to_milliseconds(fmtCtx->duration);
+    //if (ffmpegdebug > 3)
+         ALOGE("%s duration1 = %lld duration2 = %lld！！", __func__, fmtCtx->duration , duration );
     return duration;
 }
 
-long int FFmpegWrapper::getCurrentPosition()
-{
+double FFmpegWrapper::getCurrentPosition() {
     int64_t startPos;
     int64_t startDiff = 0;
     int64_t curPos = 0;
     int64_t curDiff = 0;
 
     if (!fmtCtx) {
-        ALOGE("%s fmtCtx = %p ！！", __func__, fmtCtx );
+        ALOGE("%s fmtCtx = %p ！！", __func__, fmtCtx);
         return -1;
     }
 
     startPos = fmtCtx->start_time;
-    if( startPos > 0 && startPos != AV_NOPTS_VALUE )
+    if (startPos > 0 && startPos != AV_NOPTS_VALUE)
         startDiff = fftime_to_milliseconds(startPos);
 
     curPos = frame_pts;
+
     curDiff = fftime_to_milliseconds(curPos);
-    if (ffmpegdebug > 3)
-        ALOGD("%s startPos = %lld startDiff=%lld curPos=%lld curDiff = %lld !! \n",
-              __func__, startPos, startDiff, curPos, curDiff );
 
     if (curPos < 0 || curPos < startPos)
         return 0;
 
-    int64_t adjPos = curDiff - startDiff;
+    // int64_t adjPos = curDiff - startDiff;
+    int64_t adjPos = curPos - startPos;
+    double ptsTime = adjPos * av_q2d(fmtCtx->streams[audioIndex]->time_base);
 
-    return adjPos;
+    //if (ffmpegdebug > 3) {
+        ALOGD("%s startPos = %lld startDiff=%lld curPos=%lld curDiff = %lld adjPos=%lld !! \n",
+              __func__, startPos, startDiff, curPos, curDiff, adjPos);
+        ALOGD("%s position ptsTime = %f !! \n", __func__, ptsTime);
+   //}
+
+    return ptsTime;
 }
 
 
@@ -253,6 +259,9 @@ int FFmpegWrapper::FFmpegDecodeAudio()
                       __func__,frame->pkt_dts, frame->pts,packet->pts);
             }
             frame_pts = frame->pts;
+
+            //double ptsTime = frame_pts * av_q2d(fmtCtx->streams[audioIndex]->time_base);
+            //ALOGD("%s position ptsTime = %f !! \n",__func__, ptsTime );
 
             //样本字节数 * 单通道样本数 * 通道数
             size = av_get_bytes_per_sample((AVSampleFormat)frame->format) * frame->nb_samples * outnumChannels;

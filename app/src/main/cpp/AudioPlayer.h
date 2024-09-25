@@ -32,7 +32,7 @@ public:
     int stop();
     int pause();
     int seek();
-    long int getCurrentPosition();
+    double getCurrentPosition();
     long int getDuration();
     int getParam(int id, void *param);
 

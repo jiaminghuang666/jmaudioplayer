@@ -33,7 +33,7 @@ public:
 
     audioParam getAPara();
     long int getDuration();
-    long int getCurrentPosition();
+    double getCurrentPosition();
 
     int FFmpegInitResample();
 

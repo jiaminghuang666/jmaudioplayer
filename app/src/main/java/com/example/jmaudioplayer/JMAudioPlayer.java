@@ -12,6 +12,9 @@ public class JMAudioPlayer {
 
     private Handler handler;
 
+    private static long myDuration = 0;
+    private static double myPosition = 0;
+
 
     static {
         System.loadLibrary("jmaudioplayer");
@@ -60,12 +63,15 @@ public class JMAudioPlayer {
         return;
     }
 
-    public long  playergetCurrentPosition() {
-        return getCurrentPosition();
+    public double  playergetCurrentPosition() {
+        myPosition = getCurrentPosition() ;
+        return myPosition;
     }
 
     public long playergetDuration() {
-        return getDuration();
+        myDuration = getDuration() / 1000;
+
+        return myDuration;
     }
 
 
@@ -99,10 +105,6 @@ public class JMAudioPlayer {
 
      return ;
      }
-
-    public native void testFan();
-    public native long getParam(int id);
-
 
     private  String unitFormat(int i) {
         String reStr = null;
@@ -149,6 +151,9 @@ public class JMAudioPlayer {
     public native void stop();
     public native void pause();
     public native void seek();
-    public native long getCurrentPosition();
+    public native double getCurrentPosition();
     public native long getDuration();
+
+    public native void testFan();
+    public native long getParam(int id);
 }
