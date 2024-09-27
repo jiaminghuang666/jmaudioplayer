@@ -24,6 +24,8 @@ public:
     int startRender();
     void renderpcm();
 
+    int setPause(bool isPause);
+
 protected:
     unsigned char *buf = 0;
 
@@ -32,6 +34,8 @@ private:
     pthread_t renderId;
     pthread_mutex_t mutex;
     pthread_cond_t notFull;
+
+    bool isPauseing = false;
 };
 
 

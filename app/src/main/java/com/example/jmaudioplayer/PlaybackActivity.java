@@ -154,6 +154,7 @@ public class PlaybackActivity extends FragmentActivity implements SeekBar.OnSeek
         fastreverseBtn.setOnClickListener(new Button.OnClickListener(){
             public void  onClick (View v) {
                 Log.d(TAG, "fastreverseBtn onClick !!");
+                myJMAudioPlayer.playerPasue(true);
             }
         });
 

@@ -30,7 +30,7 @@ public:
     int prepareAsync();
     int start();
     int stop();
-    int pause();
+    int pause(bool isPause);
     int seek();
     double getCurrentPosition();
     long int getDuration();

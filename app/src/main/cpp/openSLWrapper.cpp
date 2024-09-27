@@ -221,3 +221,20 @@ int openSLWrapper::startRender()
     pthread_create(&renderId, NULL, _renderpcm, this);
     return 0;
 }
+
+int  openSLWrapper::setPause(bool isPause)
+{
+    isPauseing = isPause;
+    if (isPauseing) {
+        ALOGD("%s SL_PLAYSTATE_PLAYING ..", __func__ );
+        if (*iplayer)
+            (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PAUSED);
+    } else {
+        ALOGD("%s SL_PLAYSTATE_PLAYING ..", __func__ );
+        if (*iplayer)
+            (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PLAYING);
+    }
+
+
+    return 0;
+}

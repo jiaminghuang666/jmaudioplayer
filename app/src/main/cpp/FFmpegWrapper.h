@@ -43,6 +43,8 @@ public:
     int startDecode(bool playing);
     int startDemux(bool playing);
 
+    int setPause(bool isPause);
+
 private:
 
     XData * mqueue;
@@ -66,6 +68,7 @@ private:
     int outFrameSize = 0;
 
     bool isPlay = false;
+    bool isPauseing = false;
     pthread_t decodeId;
     pthread_t demuxId;
 

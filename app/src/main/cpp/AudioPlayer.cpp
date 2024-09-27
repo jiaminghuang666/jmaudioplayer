@@ -82,9 +82,17 @@ int jmAudioPlayer::stop()
     return 0;
 }
 
-int jmAudioPlayer::pause()
+int jmAudioPlayer::pause(bool isPause)
 {
     ALOGD("%s", __func__ );
+    if (mffmpeg) {
+        mffmpeg->setPause(isPause);
+    }
+
+    if (mopenSl) {
+        mopenSl->setPause(isPause);
+    }
+
     return 0;
 }
 

@@ -236,6 +236,12 @@ int FFmpegWrapper::FFmpegDecodeAudio()
     int size = 0;
 
     while(isPlay || (pktindex - decodedpktindex) != 0 ) {
+
+       if (isPauseing){
+            XSleep(1);
+            continue;
+        }
+
         // get packet data from pktqueue;
         packet = (AVPacket *)dequeue(mpktQueue, &decodedpktindex);
 
@@ -306,6 +312,11 @@ int FFmpegWrapper::FFmpegDemux()
     AVPacket *packet = av_packet_alloc();
 
     while(isPlay) {
+        if (isPauseing){
+            XSleep(1);
+            continue;
+        }
+
         ret = av_read_frame(fmtCtx, packet);
         if (ret < 0) {
             ALOGE("%s av_read_frame fail !!", __func__);
@@ -370,4 +381,11 @@ int FFmpegWrapper::startDemux(bool playing)
     return 0;
 }
 
+
+int FFmpegWrapper::setPause(bool isPause)
+{
+    isPauseing = isPause;
+
+    return 0;
+}
 

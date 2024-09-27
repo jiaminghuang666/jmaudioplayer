@@ -52,8 +52,8 @@ public class JMAudioPlayer {
         return;
     }
 
-    public void playerPasue() {
-        pause();
+    public void playerPasue(boolean ispause) {
+        pause(ispause);
         handler.sendEmptyMessage(Constants.MSG_MUSIC_PAUSE);
         return;
     }
@@ -149,7 +149,7 @@ public class JMAudioPlayer {
     public native int releaseSource();
 
     public native void stop();
-    public native void pause();
+    public native void pause(boolean isPause);
     public native void seek();
     public native double getCurrentPosition();
     public native long getDuration();
