@@ -8,7 +8,7 @@
 #define fftime_to_milliseconds(ts) (av_rescale(ts, 1000, AV_TIME_BASE))
 #define milliseconds_to_fftime(ms) (av_rescale(ms, AV_TIME_BASE, 1000))
 
-static int ffmpegdebug = 3;
+static int ffmpegdebug = 0;
 
 FFmpegWrapper::FFmpegWrapper(XData * queue)
 {
@@ -385,7 +385,7 @@ int FFmpegWrapper::startDemux(bool playing)
 int FFmpegWrapper::setPause(bool isPause)
 {
     isPauseing = isPause;
-
+    ALOGD("%s isPauseing = %d  \n",__func__,isPauseing );
     return 0;
 }
 

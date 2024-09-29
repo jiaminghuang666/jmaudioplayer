@@ -133,9 +133,12 @@ Java_com_example_jmaudioplayer_JMAudioPlayer_setDataSource(JNIEnv *env, jobject 
     ALOGD("%s start ",__func__);
     int ret = -1;
 
-    //mjmAudioPlayer = jmAudioPlayer::getInstant();
     const char *myurl = env->GetStringUTFChars(url, 0);
     ret = mjmAudioPlayer->setdataSource(myurl);
+    if (ret != 0 ){
+        return ret;
+    }
+
     ret = mjmAudioPlayer->prepareAsync();
 
     env->ReleaseStringUTFChars(url,myurl );
@@ -166,9 +169,6 @@ Java_com_example_jmaudioplayer_JMAudioPlayer_releaseSource(JNIEnv *env, jobject 
     gJavaObject = NULL; // 将指针设置为NULL，避免野指针
     gJavaVM->DetachCurrentThread();
 
-    mjmAudioPlayer->stop();
-    if(mjmAudioPlayer != nullptr)
-        delete mjmAudioPlayer;
     return 0;
 }
 
@@ -177,15 +177,18 @@ JNIEXPORT void JNICALL
 Java_com_example_jmaudioplayer_JMAudioPlayer_stop(JNIEnv *env, jobject thiz) {
     // TODO: implement stop()
     mjmAudioPlayer->stop();
+    if(mjmAudioPlayer != nullptr)
+        delete mjmAudioPlayer;
     return;
 }
 
 extern "C"
-JNIEXPORT void JNICALL
+JNIEXPORT jint JNICALL
 Java_com_example_jmaudioplayer_JMAudioPlayer_pause(JNIEnv *env, jobject thiz, jboolean is_pause) {
     // TODO: implement pause()
-    mjmAudioPlayer->pause(is_pause);
-    return;
+    int ret = 0;
+    ret = mjmAudioPlayer->pause(is_pause);
+    return ret;
 }
 
 extern "C"
@@ -200,14 +203,12 @@ extern "C"
 JNIEXPORT jdouble  JNICALL
 Java_com_example_jmaudioplayer_JMAudioPlayer_getCurrentPosition(JNIEnv *env, jobject thiz) {
     // TODO: implement getCurrentPosition()
-
     return mjmAudioPlayer->getCurrentPosition();
 }
 extern "C"
 JNIEXPORT jlong JNICALL
 Java_com_example_jmaudioplayer_JMAudioPlayer_getDuration(JNIEnv *env, jobject thiz) {
     // TODO: implement getDuration()
-
     return mjmAudioPlayer->getDuration();
 }
 

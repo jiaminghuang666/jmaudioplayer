@@ -28,6 +28,8 @@ public:
 
     int setdataSource(const char *Url);
     int prepareAsync();
+    int release();
+
     int start();
     int stop();
     int pause(bool isPause);

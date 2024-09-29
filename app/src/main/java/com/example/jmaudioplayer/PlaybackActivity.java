@@ -1,10 +1,12 @@
 package com.example.jmaudioplayer;
 
+import android.app.AlertDialog;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -18,11 +20,13 @@ import androidx.fragment.app.FragmentActivity;
 /**
  * Loads {@link PlaybackVideoFragment}.
  */
-public class PlaybackActivity extends FragmentActivity implements SeekBar.OnSeekBarChangeListener{
+public class PlaybackActivity extends FragmentActivity implements SeekBar.OnSeekBarChangeListener {
 
     private static final String TAG = "jiaming PlaybackActivity";
     private  Thread playbackThread = null;
     private static JMAudioPlayer myJMAudioPlayer;
+
+    private static boolean firstClick = true;
 
     //control bar button
     private LinearLayout controlBar = null;
@@ -114,6 +118,7 @@ public class PlaybackActivity extends FragmentActivity implements SeekBar.OnSeek
         preBtn = (ImageButton) findViewById (R.id.PreBtn);
         fastforwordBtn = (ImageButton) findViewById (R.id.FastForwardBtn);
         playBtn = (ImageButton) findViewById (R.id.PlayBtn);
+        playBtn.setFocusedByDefault(true);
         fastreverseBtn = (ImageButton) findViewById (R.id.FastReverseBtn);
         nextBtn = (ImageButton) findViewById (R.id.NextBtn);
         optBtn = (ImageButton) findViewById (R.id.moreBtn);
@@ -145,16 +150,25 @@ public class PlaybackActivity extends FragmentActivity implements SeekBar.OnSeek
             }
         });
 
+
+
         playBtn.setOnClickListener(new Button.OnClickListener(){
             public void  onClick (View v) {
                 Log.d(TAG, "playBtn onClick !!");
+                if (!firstClick) {
+                    firstClick = true;
+                    myJMAudioPlayer.playerPasue(true);
+                } else {
+                    firstClick = false;
+                    myJMAudioPlayer.playerPasue(false);
+                }
+
             }
         });
 
         fastreverseBtn.setOnClickListener(new Button.OnClickListener(){
             public void  onClick (View v) {
                 Log.d(TAG, "fastreverseBtn onClick !!");
-                myJMAudioPlayer.playerPasue(true);
             }
         });
 
@@ -188,11 +202,35 @@ public class PlaybackActivity extends FragmentActivity implements SeekBar.OnSeek
     }
 
 
+    @Override
+    public boolean  onKeyDown(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_BACK:
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.dialog_notice)
+                        .setMessage(R.string.dialog_exit_msg)
+                        .setPositiveButton(R.string.dialog_btn_confirm, (dialog, which) -> {
+                            myJMAudioPlayer.playerStop();
+                            dialog.dismiss();
+                            finish();
+                        })
+                        .setNegativeButton(R.string.dialog_btn_cancel, (dialog, which) -> dialog.dismiss())
+                        .create()
+                        .show();
+                return true;
+
+
+            default:
+                return super.onKeyDown(keyCode,  event);
+        }
+
+    }
+
 
     private Runnable runnable = new Runnable() {
         @Override
         public void run() {
-            myJMAudioPlayer.playerstart();
+            myJMAudioPlayer.playerstart("/data/guyongzhe.mp3");
         }
     };
 
@@ -213,7 +251,7 @@ public class PlaybackActivity extends FragmentActivity implements SeekBar.OnSeek
     };
 
     public void updateView() {
-        Log.d(TAG, " playerInforrunnable  myDuration =" + myJMAudioPlayer.playergetDuration() );
+        Log.d(TAG, "myDuration =" + myJMAudioPlayer.playergetDuration() );
         totalTimeTx.setText(myJMAudioPlayer.secToTime((int)myJMAudioPlayer.playergetDuration()));
     }
 
@@ -231,6 +269,10 @@ private Handler handler = new Handler(Looper.getMainLooper()) {
             case Constants.MSG_MUSIC_PAUSE:
                 Log.d (TAG, "handleMessage MSG_MUSIC_PAUSE ");
                 handler.removeCallbacks(playerInforrunnable);
+                break;
+            case Constants.MSG_MUSIC_RESUME:
+                Log.d (TAG, "handleMessage MSG_MUSIC_RESUME ");
+                handler.post(playerInforrunnable);
                 break;
             case Constants.MSG_TOGGLE_MODE:
                 Log.d (TAG, "handleMessage MSG_TOGGLE_MODE ");

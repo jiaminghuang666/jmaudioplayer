@@ -8,9 +8,13 @@ public class Constants {
 
     public static final int MSG_MUSIC_PAUSE = 2;
 
-    public static final int MSG_TOGGLE_MODE = 3;
+    public static final int MSG_MUSIC_RESUME = 3;
 
-    public static final int MSG_PLAY_COMPLETE = 4;
+    public static final int MSG_TOGGLE_MODE = 4;
+
+    public static final int MSG_PLAY_COMPLETE = 5;
+
+
 
 
     // jni msg

@@ -34,9 +34,13 @@ public class JMAudioPlayer {
 
     }
 
-    public void playerstart() {
+    public void playerstart(String Url) {
         int ret = 0;
-        ret =  setDataSource("/data/guyongzhe.mp3",this); // "/data/guyongzhe.mp3"  "/data/1080.mp4" "/data/dukou.wav"
+        ret =  setDataSource(Url ,this); // "/data/guyongzhe.mp3"  "/data/1080.mp4" "/data/dukou.wav"
+        if (ret != 0) {
+            Log.d(TAG, " playerstart setDataSource =" + Url);
+            return ;
+        }
         prepareAsync();
 
         start();
@@ -47,15 +51,25 @@ public class JMAudioPlayer {
     }
 
     public void playerStop() {
-        releaseSource();
         stop();
+        releaseSource();
         return;
     }
 
-    public void playerPasue(boolean ispause) {
-        pause(ispause);
-        handler.sendEmptyMessage(Constants.MSG_MUSIC_PAUSE);
-        return;
+    public int playerPasue(boolean ispause) {
+        int ret = 0;
+        ret = pause(ispause);
+        if (ret != 0) {
+            Log.e(TAG, " playerPasue pause error !!" );
+            return -1;
+        }
+        if (ispause) {
+            handler.sendEmptyMessage(Constants.MSG_MUSIC_PAUSE);
+        } else {
+            handler.sendEmptyMessage(Constants.MSG_MUSIC_RESUME);
+        }
+
+        return 0;
     }
 
     public void playerseek() {
@@ -149,7 +163,7 @@ public class JMAudioPlayer {
     public native int releaseSource();
 
     public native void stop();
-    public native void pause(boolean isPause);
+    public native int pause(boolean isPause);
     public native void seek();
     public native double getCurrentPosition();
     public native long getDuration();

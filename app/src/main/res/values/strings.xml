@@ -16,5 +16,12 @@
     <!-- Error messages -->
     <string name="error_fragment_message">An error occurred</string>
     <string name="dismiss_error">Dismiss</string>
+    <!-- duration messages -->
     <string name="str_time_null">00:00:00</string>
+    <!-- exit messages -->
+    <string name="dialog_notice">Notice</string>
+    <string name="dialog_exit_msg">Exit Playback?</string>
+    <string name="dialog_btn_confirm">Exit</string>
+    <string name="dialog_btn_cancel">Cancel</string>
+
 </resources>

@@ -46,6 +46,7 @@ int jmAudioPlayer::prepareAsync()
     ret = mffmpeg->FFmpegInit(myUrl);
     if (ret) {
         ALOGE("%s FFmpegInit fail !!",__func__ );
+        goto err;
     }
     ret = mffmpeg->FFmpegInitResample();
     if (ret) {
@@ -53,6 +54,15 @@ int jmAudioPlayer::prepareAsync()
     }
 
     return 0;
+
+err:
+    if (queue)
+        delete(queue);
+    if (mffmpeg)
+        delete(mffmpeg);
+    if (mopenSl)
+        delete(mopenSl);
+    return -1;
 }
 
 
@@ -75,23 +85,37 @@ int jmAudioPlayer::start()
 int jmAudioPlayer::stop()
 {
     ALOGD("%s", __func__ );
-    mffmpeg->FFmpegRelease();
-    mopenSl->releaseOpenSL();
+    if (mffmpeg)
+        mffmpeg->FFmpegRelease();
+    if (mopenSl)
+        mopenSl->releaseOpenSL();
 
-    delete(queue);
     return 0;
 }
+
+int jmAudioPlayer::release()
+{
+    if (queue)
+        delete(queue);
+    if (mffmpeg)
+        delete(mffmpeg);
+    if (mopenSl)
+        delete(mopenSl);
+
+    return 0;
+}
+
 
 int jmAudioPlayer::pause(bool isPause)
 {
     ALOGD("%s", __func__ );
-    if (mffmpeg) {
-        mffmpeg->setPause(isPause);
+    if (!mffmpeg || !mopenSl) {
+        ALOGE("%s mffmpeg=%p,mopenSl=%p !! \n", __func__ ,mffmpeg,mopenSl);
+        return -1;
     }
 
-    if (mopenSl) {
-        mopenSl->setPause(isPause);
-    }
+    mffmpeg->setPause(isPause);
+    mopenSl->setPause(isPause);
 
     return 0;
 }
