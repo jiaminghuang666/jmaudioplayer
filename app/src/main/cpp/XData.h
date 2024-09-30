@@ -24,6 +24,9 @@ typedef struct xdata_t {
 
 class XData {
 public:
+
+    virtual uint8_t * AllocFrameBuffer(int size);
+    virtual int DropFrameBuffer(uint8_t *data);
     virtual int blockPut(xdata frame);
     virtual xdata blockGet();
 
@@ -35,6 +38,8 @@ private:
 
     pthread_mutex_t mutex;
     pthread_cond_t full_signal;
+
+
 };
 
 

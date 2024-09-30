@@ -10,11 +10,29 @@ static bool debug = true;
 
 #define MAXFRAME 25
 
-int XData::blockPut(xdata frame)
+
+uint8_t * XData::AllocFrameBuffer(int size)
+{
+    uint8_t * data = (uint8_t *) malloc(size);
+    if (!data) {
+        ALOGE("%s, mxdata malloc fail !! ", __func__ );
+        return NULL;
+    }
+
+    return data;
+}
+
+int XData::DropFrameBuffer(uint8_t *data)
+{
+    free(data);
+    return 0;
+}
+
+int XData::blockPut(xdata mxdata)
 {
     if (debug) ALOGD("%s  start ..", __func__ );
-    if (frame.size <= 0 || !frame.data) {
-        ALOGE("%s, xdata frame.size = %d  null fail !! ", __func__, frame.size );
+    if (mxdata.size <= 0 || !mxdata.data) {
+        ALOGE("%s, xdata frame.size = %d  null fail !! ", __func__, mxdata.size );
         return -1;
     }
 
@@ -23,8 +41,8 @@ int XData::blockPut(xdata frame)
         ALOGD("%s, frames.size() = %d frames queue full frames.empty() ", __func__, frames.size() );
         pthread_cond_wait(&full_signal, &mutex);
     }
-    if (debug) ALOGD("%s, current frames.size() = %d  frameindex =%ld", __func__, frames.size(), frame.frameindex );
-    frames.push_back(frame);
+    if (debug) ALOGD("%s, current frames.size() = %d  frameindex =%ld", __func__, frames.size(), mxdata.frameindex );
+    frames.push_back(mxdata);
    // pthread_mutex_unlock(&mutex);
     if (debug) ALOGD("%s  end", __func__ );
     return 1;
@@ -33,7 +51,7 @@ int XData::blockPut(xdata frame)
 xdata XData::blockGet()
 {
     if (debug) ALOGD("%s  start..", __func__ );
-    xdata d;
+    xdata mxdata;
     //pthread_mutex_lock(&mutex);
     //while(!isExit) {
         if(!frames.empty()) {
@@ -42,11 +60,11 @@ xdata XData::blockGet()
                 pthread_cond_signal(&full_signal);
             }
 
-            d = frames.front();
-            if (debug) ALOGD("%s, current frames.size() = %d  frameindex =%ld \n", __func__, frames.size(), d.frameindex );
+            mxdata = frames.front();
+            if (debug) ALOGD("%s, current frames.size() = %d  frameindex =%ld \n", __func__, frames.size(), mxdata.frameindex );
             frames.pop_front();
             //pthread_mutex_unlock(&mutex);
-            return  d;
+            return  mxdata;
         } else {
             if (debug) ALOGD("%s, frames.empty() = %d   ", __func__, frames.empty() );
         }
@@ -54,7 +72,7 @@ xdata XData::blockGet()
    // pthread_mutex_unlock(&mutex);
 
     if (debug) ALOGD("%s  end..", __func__ );
-    return d;
+    return mxdata;
 }
 
 

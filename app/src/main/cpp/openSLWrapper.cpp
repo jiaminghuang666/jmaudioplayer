@@ -61,20 +61,21 @@ void openSLWrapper::PlayCall(void *bufq)
     if (!bufq) return;
     SLAndroidSimpleBufferQueueItf bf = (SLAndroidSimpleBufferQueueItf)bufq;
 
-    xdata d = mqueue->blockGet();
-    if (d.size <= 0) {
-	   ALOGE("%s get data is not enough frame size:%d  ..", __func__ ,d.size);
+    xdata mxdata = mqueue->blockGet();
+    if (mxdata.size <= 0) {
+	   ALOGE("%s get data is not enough frame size:%d  ..", __func__ ,mxdata.size);
 	   return ;
 	}
 
-    if (opensldebug) {
-        ALOGD("%s  blockGet render frameindex = %ld : frame size = %d", __func__ ,d.frameindex, d.size);
-        dumprenderData(d.data,d.size);
-    }
-    memcpy(buf, d.data,d.size);
+    //if (opensldebug) {
+        ALOGD("%s  blockGet render frameindex = %ld : frame size = %d", __func__ ,mxdata.frameindex, mxdata.size);
+        dumprenderData(mxdata.data,mxdata.size);
+    //}
+    memcpy(buf, mxdata.data, mxdata.size);
 	if (pcmQue && (*pcmQue)) {
-        (*pcmQue)->Enqueue(pcmQue,buf, d.size);	
+        (*pcmQue)->Enqueue(pcmQue,buf, mxdata.size);
 	}
+    mqueue->DropFrameBuffer(mxdata.data);
 
     //return ;
 }
@@ -160,7 +161,7 @@ int openSLWrapper::createOpenSL(void *Param)
     (*pcmQue)->RegisterCallback(pcmQue,PcmCall,this);
 
     //设置为播放状态
-   // (*iplayer)->SetPlayState(iplayer,SL_PLAYSTATE_PLAYING);
+    (*iplayer)->SetPlayState(iplayer,SL_PLAYSTATE_PAUSED);
 
     //启动队列回调
     (*pcmQue)->Enqueue(pcmQue,"",1);
@@ -207,7 +208,7 @@ void * _renderpcm(void *args)
 {
     ALOGD("%s start ..", __func__ );
     openSLWrapper *p = (openSLWrapper *)args;
-    p->renderpcm();
+    //p->renderpcm();
 
     (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PLAYING);
     pthread_exit(0);
@@ -234,7 +235,6 @@ int  openSLWrapper::setPause(bool isPause)
         if (*iplayer)
             (*iplayer)->SetPlayState(iplayer, SL_PLAYSTATE_PLAYING);
     }
-
 
     return 0;
 }

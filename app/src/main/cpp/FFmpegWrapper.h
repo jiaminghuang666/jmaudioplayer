@@ -36,6 +36,7 @@ public:
     double getCurrentPosition();
 
     int FFmpegInitResample();
+    int FFmpegResample(AVFrame *frame);
 
     int FFmpegDecodeAudio();
     int FFmpegDemux();
