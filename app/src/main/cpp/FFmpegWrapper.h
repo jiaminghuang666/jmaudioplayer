@@ -38,11 +38,8 @@ public:
     int FFmpegInitResample();
     int FFmpegResample(AVFrame *frame);
 
-    int FFmpegDecodeAudio();
-    int FFmpegDemux();
-
-    int startDecode(bool playing);
-    int startDemux(bool playing);
+    int FFmpegDecodeAudio(bool playing);
+    int FFmpegDemux(bool playing);
 
     int setPause(bool isPause);
 
@@ -70,8 +67,7 @@ private:
 
     bool isPlay = false;
     bool isPauseing = false;
-    pthread_t decodeId;
-    pthread_t demuxId;
+
 
     long int pktindex = 0;
 

@@ -122,16 +122,7 @@ err0:
    return -1;
 }
 
-int FFmpegWrapper::FFmpegRelease()
-{
-    ALOGE("%s",__func__ );
 
-    isPlay = false;
-    avcodec_close(codecCtx);
-    avformat_close_input(&fmtCtx);
-
-    return  0;
-}
 
 int FFmpegWrapper::FFmpegInitResample()
 {
@@ -246,15 +237,16 @@ double FFmpegWrapper::getCurrentPosition() {
     return ptsTime;
 }
 
-int FFmpegWrapper::FFmpegDecodeAudio()
+int FFmpegWrapper::FFmpegDecodeAudio(bool playing)
 {
     ALOGD("%s start decode..",__func__ );
     int ret;
     AVFrame *frame = av_frame_alloc();
     AVPacket *packet;
     long int decodedpktindex = 0;
-
     int got_frame = 0;
+    isPlay = playing;
+
     while(isPlay || (pktindex - decodedpktindex) != 0 ) {
        if (isPauseing){
             XSleep(1);
@@ -300,16 +292,19 @@ int FFmpegWrapper::FFmpegDecodeAudio()
     ALOGD("%s start decode exit..",__func__ );
     isPlay = false;
 
+    return 0;
 err0:
     ALOGE("%s start decode err0 exit..",__func__ );
     av_frame_unref(frame);
-    return 0;
+    return -1;
 }
 
-int FFmpegWrapper::FFmpegDemux()
+int FFmpegWrapper::FFmpegDemux(bool playing)
 {
     int ret = -1;
     AVPacket *packet = av_packet_alloc();
+
+    isPlay = playing;
 
     while(isPlay) {
         if (isPauseing){
@@ -345,42 +340,18 @@ err0:
 }
 
 
-void *_decodeAudio(void *args)
+
+int FFmpegWrapper::FFmpegRelease()
 {
-    FFmpegWrapper *p = (FFmpegWrapper *)args;
+    ALOGE("%s",__func__ );
 
-    p->FFmpegDecodeAudio();
-    pthread_exit(0);
+    isPlay = false;
+    avcodec_close(codecCtx);
+    avformat_close_input(&fmtCtx);
 
-    return NULL;
+    ALOGE("%s end",__func__ );
+    return  0;
 }
-
-int FFmpegWrapper::startDecode(bool playing)
-{
-    ALOGD("%s start ..",__func__ );
-    isPlay = playing;
-
-    pthread_create(&decodeId, NULL, _decodeAudio, this);
-
-    return 0;
-}
-
-void *_demux(void *args)
-{
-    FFmpegWrapper *p = (FFmpegWrapper *)args;
-    p->FFmpegDemux();
-    return NULL;
-}
-
-int FFmpegWrapper::startDemux(bool playing)
-{
-    ALOGD("%s start ..",__func__ );
-    isPlay = playing;
-
-    pthread_create(&demuxId, NULL, _demux, this);
-    return 0;
-}
-
 
 int FFmpegWrapper::setPause(bool isPause)
 {

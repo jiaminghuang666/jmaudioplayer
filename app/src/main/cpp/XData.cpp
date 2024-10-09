@@ -6,10 +6,9 @@
 #include "ALOG.h"
 #include "jmUntil.h"
 
-static bool debug = true;
+static bool debug = false;
 
 #define MAXFRAME 25
-
 
 uint8_t * XData::AllocFrameBuffer(int size)
 {

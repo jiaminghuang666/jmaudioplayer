@@ -98,6 +98,9 @@ public class JMAudioPlayer {
                 case Constants.MSG_ERROR:
                     Log.d(TAG, " handleMessage MSG_ERROR" );
                     break;
+                case Constants.MSG_INFO:
+                    Log.d(TAG, " handleMessage MSG_INFO" );
+                    break;
                 case Constants.MSG_EOS:
                     Log.d(TAG, " handleMessage MSG_EOS" );
                     break;
@@ -109,7 +112,7 @@ public class JMAudioPlayer {
     };
 
      public void postEventFromNative(int id,int arg1, int arg2) {
-         Log.d(TAG, " postEventFromNative " );
+         Log.d(TAG, " postEventFromNative id ="+ id + " arg1 = " + arg1 + " arg2= " + arg2 );
          if (mPlayerMsgHandler != null) {
              Message msg = new Message();
              msg.what = id;

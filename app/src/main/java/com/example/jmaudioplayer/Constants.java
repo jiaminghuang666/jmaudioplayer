@@ -20,5 +20,6 @@ public class Constants {
     // jni msg
     public static final int MSG_START = 0;
     public static final int MSG_ERROR = 100;     /* arg1 = error */
-    public static final int MSG_EOS   = 200;
+    public static final int MSG_INFO = 200;
+    public static final int MSG_EOS   = 300;
 }

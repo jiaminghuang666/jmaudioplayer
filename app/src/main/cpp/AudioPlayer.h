@@ -9,6 +9,9 @@
 #include "openSLWrapper.h"
 
 
+
+static bool playing;
+
 enum paramId {
     PARAM_DURATION = 0,
     PARAM_POSITION,
@@ -38,13 +41,17 @@ public:
     long int getDuration();
     int getParam(int id, void *param);
 
-private:
-    int postEvent(int id,int arg1,int arg2);
+    int startDecode();
+    int startDemux();
 
+private:
     FFmpegWrapper * mffmpeg ;
     openSLWrapper * mopenSl ;
     XData * queue;
     const char *myUrl;
+
+    pthread_t decodeId;
+    pthread_t demuxId;
 };
 
 

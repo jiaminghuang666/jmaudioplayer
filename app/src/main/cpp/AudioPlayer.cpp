@@ -2,18 +2,16 @@
 // Created by jiaming.huang on 2024/6/21.
 //
 
+#include  <pthread.h>
+
 #include "ALOG.h"
 #include "AudioPlayer.h"
-
-#include "FFmpegWrapper.h"
-#include "openSLWrapper.h"
-
 #include "jmaudioplayer.h"
+#include "jmaudioplayermsg.h"
 
 jmAudioPlayer::jmAudioPlayer()
 {
     ALOGD("%s", __func__ );
-
 }
 
 jmAudioPlayer::~jmAudioPlayer()
@@ -23,13 +21,12 @@ jmAudioPlayer::~jmAudioPlayer()
 
 int jmAudioPlayer::setdataSource(const char *Url)
 {
-    ALOGD("%s", __func__ );
+    ALOGD("%s Url = %s ", __func__, Url);
     if (!Url) {
         ALOGE("%s Url = %s", __func__ ,Url );
         return -1;
     }
     myUrl = Url;
-    ALOGE("%s Url = %d", __func__ ,Url );
     return 0;
 }
 
@@ -66,42 +63,105 @@ err:
 }
 
 
+void *_decodeAudio(void *args)
+{
+    ALOGD("%s start ..",__func__ );
+    int ret = -1;
+    FFmpegWrapper *p = (FFmpegWrapper *)args;
+
+    ret = p->FFmpegDecodeAudio(playing);
+    if (ret) {
+        ALOGD("%s ret =%d fail !! ..",__func__,ret );
+    }
+    postEvent(MSG_EOS, 0, 0);
+    ALOGD("%s end ..",__func__ );
+    pthread_exit(0);
+
+    return NULL;
+}
+
+void *_demux(void *args)
+{
+    ALOGD("%s start ..",__func__ );
+    int ret = -1;
+    FFmpegWrapper *p = (FFmpegWrapper *)args;
+    ret = p->FFmpegDemux(playing);
+    if (ret) {
+        ALOGD("%s ret =%d fail !! ..",__func__,ret );
+    }
+    postEvent(MSG_EOS, 1, 0);
+    ALOGD("%s end ..",__func__ );
+
+    pthread_exit(0);
+    return NULL;
+}
+
+int jmAudioPlayer::startDecode()
+{
+    ALOGD("%s start ..",__func__ );
+    pthread_create(&decodeId, NULL, _decodeAudio, mffmpeg);
+    return 0;
+}
+
+int jmAudioPlayer::startDemux()
+{
+    ALOGD("%s start ..",__func__ );
+    pthread_create(&demuxId, NULL, _demux, mffmpeg);
+    return 0;
+}
+
 int jmAudioPlayer::start()
 {
     ALOGD("%s", __func__ );
     int ret = -1;
 
-    ret = mffmpeg->startDemux(true);
-    ret = mffmpeg->startDecode(true);
+    playing  = true;
+    ret = startDemux();
+    if (ret) {
+        ALOGE("%s startDemux Fail !! \n", __func__ );
+        return -1;
+    }
+    ret = startDecode();
+    if (ret) {
+        ALOGE("%s startDecode Fail !! \n", __func__ );
+        return -1;
+    }
 
     audioParam mparam = mffmpeg->getAPara();
     ALOGD("%s numChannels:%d sampleFormat:%d sampleRate:%d !!",__func__ ,mparam.numChannels, mparam.sampleFormat, mparam.sampleRate );
     ret = mopenSl->createOpenSL(&mparam);
+    if (ret) {
+        ALOGE("%s createOpenSL Fail !! \n", __func__ );
+        return -1;
+    }
 
     ret = mopenSl->startRender();
+    if (ret) {
+        ALOGE("%s startRender Fail !! \n", __func__ );
+        return -1;
+    }
     return 0;
 }
 
 int jmAudioPlayer::stop()
 {
     ALOGD("%s", __func__ );
+    //pthread_cancel(decodeId);
+    //pthread_cancel(demuxId);
+    //pthread_join(decodeId, NULL);
+    //pthread_join(demuxId, NULL);
+
     if (mffmpeg)
         mffmpeg->FFmpegRelease();
     if (mopenSl)
         mopenSl->releaseOpenSL();
 
-    return 0;
-}
-
-int jmAudioPlayer::release()
-{
     if (queue)
         delete(queue);
     if (mffmpeg)
         delete(mffmpeg);
     if (mopenSl)
         delete(mopenSl);
-
     return 0;
 }
 
@@ -168,13 +228,7 @@ int jmAudioPlayer::getParam(int id, void *param)
     return 0;
 }
 
-int jmAudioPlayer::postEvent(int id,int arg1,int arg2)
-{
 
-    jniPostEvent(id, arg1, arg2);
-
-    return 0;
-}
 
 
 
