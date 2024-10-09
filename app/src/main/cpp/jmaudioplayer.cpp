@@ -101,7 +101,29 @@ void jniPostEvent_n(int id, int arg1,int arg2)
 
 void jniPostEvent(int id, int arg1,int arg2)
 {
-    jniPostEvent_n(id, arg1, arg2);
+    switch (id) {
+        case  MSG_START:
+            ALOGD("%s = MSG_START  !!",__func__ );
+            jniPostEvent_n(MSG_START, arg1, arg2);
+            break;
+        case MSG_ERROR:
+            ALOGD("%s = MSG_ERROR  !!",__func__ );
+            jniPostEvent_n(MSG_ERROR, arg1, arg2);
+            break;
+        case MSG_INFO:
+            ALOGD("%s = MSG_INFO  !!",__func__ );
+            jniPostEvent_n(MSG_INFO, arg1, arg2);
+            break;
+        case MSG_EOS:
+            ALOGD("%s = MSG_EOS  !!",__func__ );
+            mjmAudioPlayer->stop();
+            jniPostEvent_n(MSG_EOS, arg1, arg2);
+            break;
+        default:
+            ALOGD("%s = default  !!",__func__ );
+            break;
+    }
+
     return ;
 }
 

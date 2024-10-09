@@ -49,7 +49,6 @@ add_library( # Sets the name of the library.
              FFmpegWrapper.cpp
              XData.cpp
              jmSonicImp.cpp
-             sonic_wrapper.cpp
              sonic/sonic.c
 
              # Provides a relative path to your source file(s).

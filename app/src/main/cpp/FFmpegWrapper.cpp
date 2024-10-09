@@ -122,8 +122,6 @@ err0:
    return -1;
 }
 
-
-
 int FFmpegWrapper::FFmpegInitResample()
 {
     ALOGD("%s init Resample..",__func__ );
@@ -163,9 +161,7 @@ int FFmpegWrapper::FFmpegResample(AVFrame *frame)
     mxdata.data = mqueue->AllocFrameBuffer(size);
     mxdata.frameindex = frameIndex++;
     mxdata.size = size;
-    //uint8_t * outBuffer = (uint8_t *) av_malloc(size);
     swr_convert(swrCtx, &mxdata.data, frame->nb_samples, (const uint8_t **)frame->data, frame->nb_samples);
-    //free(outBuffer);
 
     if (ffmpegdebug > 2) {
         dumpresampleData(mxdata.data, mxdata.size);
@@ -197,7 +193,7 @@ long int FFmpegWrapper::getDuration()
     }
 
     duration = fftime_to_milliseconds(fmtCtx->duration);
-    //if (ffmpegdebug > 3)
+    if (ffmpegdebug > 3)
          ALOGE("%s duration1 = %lld duration2 = %lld！！", __func__, fmtCtx->duration , duration );
     return duration;
 }
@@ -228,11 +224,11 @@ double FFmpegWrapper::getCurrentPosition() {
     int64_t adjPos = curPos - startPos;
     double ptsTime = adjPos * av_q2d(fmtCtx->streams[audioIndex]->time_base);
 
-    //if (ffmpegdebug > 3) {
+    if (ffmpegdebug > 3) {
         ALOGD("%s startPos = %lld startDiff=%lld curPos=%lld curDiff = %lld adjPos=%lld !! \n",
               __func__, startPos, startDiff, curPos, curDiff, adjPos);
         ALOGD("%s position ptsTime = %f !! \n", __func__, ptsTime);
-   //}
+   }
 
     return ptsTime;
 }
@@ -338,8 +334,6 @@ err0:
     av_packet_unref(packet);
     return -1;
 }
-
-
 
 int FFmpegWrapper::FFmpegRelease()
 {

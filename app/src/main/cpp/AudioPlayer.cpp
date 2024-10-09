@@ -7,7 +7,8 @@
 #include "ALOG.h"
 #include "AudioPlayer.h"
 #include "jmaudioplayer.h"
-#include "jmaudioplayermsg.h"
+
+static inline int postEvent(int id,int arg1,int arg2);
 
 jmAudioPlayer::jmAudioPlayer()
 {
@@ -29,7 +30,6 @@ int jmAudioPlayer::setdataSource(const char *Url)
     myUrl = Url;
     return 0;
 }
-
 
 int jmAudioPlayer::prepareAsync()
 {
@@ -61,7 +61,6 @@ err:
         delete(mopenSl);
     return -1;
 }
-
 
 void *_decodeAudio(void *args)
 {
@@ -213,12 +212,11 @@ int jmAudioPlayer::getParam(int id, void *param)
         return -1;
 
     switch (id) {
-        /*case PARAM_DURATION:
-            *(int64_t *)param = mffmpeg->getDuration();
-            ALOGD("%s duration %lld  !!",__func__ ,*(int64_t *)param );
+        case PARAM_MEDIAINFO:
             break;
-        case PARAM_POSITION:
-            break;*/
+
+        case PARAM_AUDIOTRACK:
+            break;
 
         default:
             ALOGE("%s  fail !!",__func__ );
@@ -228,11 +226,13 @@ int jmAudioPlayer::getParam(int id, void *param)
     return 0;
 }
 
+static inline int postEvent(int id,int arg1,int arg2)
+{
 
+    jniPostEvent(id, arg1, arg2);
 
-
-
-
+    return 0;
+}
 
 
 

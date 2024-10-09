@@ -8,13 +8,18 @@
 #include "FFmpegWrapper.h"
 #include "openSLWrapper.h"
 
-
-
 static bool playing;
 
+enum MSG {
+    MSG_START = 0,
+    MSG_ERROR = 100,
+    MSG_INFO = 200,
+    MSG_EOS   = 300,
+};
+
 enum paramId {
-    PARAM_DURATION = 0,
-    PARAM_POSITION,
+    PARAM_MEDIAINFO = 0,
+    PARAM_AUDIOTRACK,
     PARAM_MAX
 };
 
@@ -31,8 +36,6 @@ public:
 
     int setdataSource(const char *Url);
     int prepareAsync();
-    int release();
-
     int start();
     int stop();
     int pause(bool isPause);
@@ -44,6 +47,8 @@ public:
     int startDecode();
     int startDemux();
 
+    int postEvent(int id,int arg1,int arg2);
+
 private:
     FFmpegWrapper * mffmpeg ;
     openSLWrapper * mopenSl ;
@@ -52,6 +57,7 @@ private:
 
     pthread_t decodeId;
     pthread_t demuxId;
+
 };
 
 
