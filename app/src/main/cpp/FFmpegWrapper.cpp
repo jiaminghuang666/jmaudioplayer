@@ -43,6 +43,7 @@ static int dumpresampleData(void *data, int size)
 FFmpegWrapper::FFmpegWrapper(XData * queue)
 {
     ALOGE("%s",__func__ );
+    av_log_set_level(54);
     mqueue = queue;
     mpktQueue = (Queue *)malloc(sizeof (Queue));
     if (mpktQueue == NULL) {
@@ -75,6 +76,8 @@ int FFmpegWrapper::FFmpegInit(const char* url)
         ALOGE("%s avformat_open_input open %s fail !!",__func__, url);
         return -1;
     }
+
+    ALOGE("%s jiaming jiaming  !!",__func__ );
 
     ret = avformat_find_stream_info(fmtCtx, NULL); //读取文件信息
     if ( ret !=0 ) {
