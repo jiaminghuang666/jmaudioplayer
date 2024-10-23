@@ -132,7 +132,12 @@ JNIEXPORT jlong JNICALL
 Java_com_example_jmaudioplayer_JMAudioPlayer_getParam(JNIEnv *env, jobject thiz, jint id) {
     // TODO: implement getParam()
     jlong value;
-    mjmAudioPlayer->getParam(id, &value);
+    mystreamInfo *myStreamInfo = new mystreamInfo();
+
+    mjmAudioPlayer->getParam(id, (void *)myStreamInfo);
+    ALOGD("%s start myStreamInfo->AudiocodecId=0x%x ",__func__,myStreamInfo->AudiocodecId);
+
+    delete myStreamInfo;
 
     return value;
 }

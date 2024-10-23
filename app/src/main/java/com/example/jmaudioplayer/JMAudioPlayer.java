@@ -47,6 +47,9 @@ public class JMAudioPlayer {
 
         handler.sendEmptyMessage(Constants.MSG_MUSIC_INIT);
         handler.sendEmptyMessage(Constants.MSG_MUSIC_START);
+
+        getParam(Constants.MEDIAINFO);
+
         return;
     }
 

@@ -211,8 +211,10 @@ int jmAudioPlayer::getParam(int id, void *param)
     if (!param)
         return -1;
 
+    ALOGD("%s  id =%d !!",__func__,id);
     switch (id) {
         case PARAM_MEDIAINFO:
+            mffmpeg->getStreamInfo(param);
             break;
 
         case PARAM_AUDIOTRACK:

@@ -22,4 +22,10 @@ public class Constants {
     public static final int MSG_ERROR = 100;     /* arg1 = error */
     public static final int MSG_INFO = 200;
     public static final int MSG_EOS   = 300;
+
+    // get param
+    public static final int MEDIAINFO = 0;
+
+    public static final int AUDIOTRACK = 100;
+
 }

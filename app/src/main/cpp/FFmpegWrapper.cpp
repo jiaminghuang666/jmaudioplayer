@@ -53,6 +53,13 @@ FFmpegWrapper::FFmpegWrapper(XData * queue)
     memset(mpktQueue, 0 , sizeof (Queue));
     initQueue(mpktQueue);
 
+    myStreamInfo = (struct streamInfo *)malloc(sizeof(mystreamInfo));
+    if (myStreamInfo == NULL) {
+        ALOGE("%s malloc myStreamInfo fail ",__func__ );
+        return ;
+    }
+    memset(myStreamInfo, 0 , sizeof (mystreamInfo));
+
     av_register_all();
     avformat_network_init();
     avcodec_register_all();
@@ -61,9 +68,9 @@ FFmpegWrapper::FFmpegWrapper(XData * queue)
 FFmpegWrapper::~FFmpegWrapper()
 {
     ALOGE("%s",__func__ );
+    free(myStreamInfo);
     destroyQueue(mpktQueue);
     free(mpktQueue);
-
 }
 
 int FFmpegWrapper::FFmpegInit(const char* url)
@@ -90,6 +97,15 @@ int FFmpegWrapper::FFmpegInit(const char* url)
             audioIndex = i;
             ALOGD("%s AVMEDIA_TYPE_AUDIO audioIndex = %d ",__func__ ,audioIndex);
             break;
+        } else if (fmtCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_VIDEO) {
+            videoIndex = i;
+            ALOGD("%s AVMEDIA_TYPE_VIDEO audioIndex = %d ",__func__ ,videoIndex);
+        } else if (fmtCtx->streams[i]->codecpar->codec_type == AVMEDIA_TYPE_SUBTITLE) {
+            subtitleIndex = i;
+            ALOGD("%s AVMEDIA_TYPE_SUBTITLE audioIndex = %d ",__func__ ,subtitleIndex);
+        } else {
+            ALOGD("%s fine stream error  !!! ",__func__);
+            goto err0;
         }
     }
     if (audioIndex < 0) {
@@ -104,6 +120,9 @@ int FFmpegWrapper::FFmpegInit(const char* url)
     //stream = fmtCtx->streams[audioIndex];
     avcodec_parameters_to_context(codecCtx, fmtCtx->streams[audioIndex]->codecpar);
     codec = avcodec_find_decoder(codecCtx->codec_id);
+
+    myStreamInfo->AudiocodecId = codecCtx->codec_id;
+    ALOGD("%s codecCtx->codec_id = 0x%x ",__func__ ,codecCtx->codec_id);
 
     insampleFormat = codecCtx->sample_fmt;
     insampleRate = codecCtx->sample_rate;
@@ -178,12 +197,21 @@ int FFmpegWrapper::FFmpegResample(AVFrame *frame)
 audioParam FFmpegWrapper::getAPara()
 {
     audioParam mParam ;
-
     mParam.numChannels = outnumChannels;
     mParam.sampleRate = outsampleRate;
     mParam.sampleFormat = outsampleFormat;
 
     return mParam;
+}
+
+int FFmpegWrapper::getStreamInfo(void *param)
+{
+    struct streamInfo * myStreamInfoparam = (struct streamInfo *)param;
+
+    myStreamInfoparam->AudiocodecId = myStreamInfo->AudiocodecId;
+    ALOGE("%s myStreamInfoparam->AudiocodecId = 0x%x ！！", __func__, myStreamInfoparam->AudiocodecId );
+
+    return 0;
 }
 
 long int FFmpegWrapper::getDuration()

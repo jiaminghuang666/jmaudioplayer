@@ -231,7 +231,9 @@ public class PlaybackActivity extends FragmentActivity implements SeekBar.OnSeek
         @Override
         public void run() {
             //myJMAudioPlayer.playerstart("/data/guyongzhe.mp3");
-            myJMAudioPlayer.playerstart("/data/ChID_voices_341_ddp.mp4");
+            //myJMAudioPlayer.playerstart("/data/ChID_voices_341_ddp.mp4");
+            myJMAudioPlayer.playerstart("/data/MAININTRO.EVO");
+
         }
     };
 

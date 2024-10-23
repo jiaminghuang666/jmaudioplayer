@@ -19,7 +19,7 @@ enum MSG {
 
 enum paramId {
     PARAM_MEDIAINFO = 0,
-    PARAM_AUDIOTRACK,
+    PARAM_AUDIOTRACK = 100,
     PARAM_MAX
 };
 

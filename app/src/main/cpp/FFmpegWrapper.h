@@ -24,6 +24,13 @@ struct AVStream ;
 struct AVCodec;
 struct SwrContext;
 
+typedef struct streamInfo {
+    int AudiocodecId;
+    int VideocodecId;
+
+}mystreamInfo;
+
+
 class FFmpegWrapper  {
 public:
     FFmpegWrapper(XData * queue);
@@ -35,6 +42,7 @@ public:
     audioParam getAPara();
     long int getDuration();
     double getCurrentPosition();
+    int getStreamInfo(void *param);
 
     int FFmpegInitResample();
     int FFmpegResample(AVFrame *frame);
@@ -57,6 +65,8 @@ private:
 
 
     int audioIndex = -1;
+    int videoIndex = -1;
+    int subtitleIndex = -1;
     int innumChannels = 0;
     int insampleRate = 0;
     int insampleFormat = 0;
@@ -73,6 +83,9 @@ private:
     long int pktindex = 0;
 
     long int frame_pts = 0;
+
+
+    struct streamInfo * myStreamInfo;
 
 };
 
